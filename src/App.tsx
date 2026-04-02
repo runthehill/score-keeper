@@ -10,6 +10,8 @@ import Settings from './screens/Settings';
 
 function AppRoutes() {
   const ready = useDBReady();
+  const location = useLocation();
+  const hideTabBar = location.pathname.startsWith('/game/') || location.pathname.startsWith('/summary/');
 
   if (!ready) {
     return (
@@ -18,9 +20,6 @@ function AppRoutes() {
       </div>
     );
   }
-
-  const location = useLocation();
-  const hideTabBar = location.pathname.startsWith('/game/') || location.pathname.startsWith('/summary/');
 
   return (
     <div className={`min-h-screen bg-surface-900 ${hideTabBar ? '' : 'pb-20'}`}>
