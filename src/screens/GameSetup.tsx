@@ -164,7 +164,7 @@ export default function GameSetup() {
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
               placeholder="Player name"
-              className={`${inputClass} flex-1`}
+              className="min-w-0 flex-1 bg-surface-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
               onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
             />
             <input
@@ -172,10 +172,10 @@ export default function GameSetup() {
               value={newPlayerNumber}
               onChange={(e) => setNewPlayerNumber(e.target.value)}
               placeholder="#"
-              className={`${inputClass} w-16 text-center`}
+              className="w-16 shrink-0 bg-surface-700 rounded-lg px-2 py-3 text-white text-center placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
               onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
             />
-            <button onClick={addPlayer} className="bg-accent rounded-lg px-4 font-semibold">
+            <button onClick={addPlayer} className="shrink-0 bg-accent rounded-lg px-4 font-semibold">
               Add
             </button>
           </div>
