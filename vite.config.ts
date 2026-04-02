@@ -24,7 +24,9 @@ export default defineConfig({
       workbox: { globPatterns: ['**/*.{js,css,html,wasm}'] },
     }),
   ],
-  optimizeDeps: { exclude: ['sql.js'] },
+  optimizeDeps: {
+    include: ['sql.js'],
+  },
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
