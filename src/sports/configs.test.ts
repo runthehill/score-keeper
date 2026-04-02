@@ -1,0 +1,62 @@
+import { describe, it, expect } from 'vitest';
+import { SPORTS, getSportConfig } from './configs';
+
+describe('sport configs', () => {
+  it('defines exactly 4 sports', () => {
+    expect(SPORTS).toHaveLength(4);
+  });
+
+  it.each(['rugby_union', 'soccer', 'gaelic_football', 'basketball'] as const)(
+    '%s has valid config',
+    (sportId) => {
+      const config = getSportConfig(sportId);
+      expect(config).toBeDefined();
+      expect(config.id).toBe(sportId);
+      expect(config.name).toBeTruthy();
+      expect(config.icon).toBeTruthy();
+      expect(config.periods.count).toBeGreaterThan(0);
+      expect(config.periods.name).toBeTruthy();
+      expect(config.scoringEvents.length).toBeGreaterThan(0);
+    }
+  );
+
+  it('rugby union has correct scoring values', () => {
+    const config = getSportConfig('rugby_union');
+    const tryEvent = config.scoringEvents.find((e) => e.type === 'try');
+    const conversion = config.scoringEvents.find((e) => e.type === 'conversion');
+    const penalty = config.scoringEvents.find((e) => e.type === 'penalty');
+    const dropGoal = config.scoringEvents.find((e) => e.type === 'drop_goal');
+    expect(tryEvent?.points).toBe(5);
+    expect(conversion?.points).toBe(2);
+    expect(penalty?.points).toBe(3);
+    expect(dropGoal?.points).toBe(3);
+  });
+
+  it('gaelic football uses split score display', () => {
+    const config = getSportConfig('gaelic_football');
+    expect(config.scoreDisplay).toBe('split');
+    const goal = config.scoringEvents.find((e) => e.type === 'goal');
+    const point = config.scoringEvents.find((e) => e.type === 'point');
+    expect(goal?.points).toBe(3);
+    expect(point?.points).toBe(1);
+  });
+
+  it('basketball has stat events for rebounds and steals', () => {
+    const config = getSportConfig('basketball');
+    expect(config.statEvents.find((e) => e.type === 'rebound')).toBeDefined();
+    expect(config.statEvents.find((e) => e.type === 'steal')).toBeDefined();
+  });
+
+  it('gaelic football has black card', () => {
+    const config = getSportConfig('gaelic_football');
+    expect(config.cardEvents.find((e) => e.type === 'card_black')).toBeDefined();
+  });
+
+  it('all scoring events have positive points', () => {
+    for (const sport of SPORTS) {
+      for (const event of sport.scoringEvents) {
+        expect(event.points, `${sport.id}.${event.type}`).toBeGreaterThan(0);
+      }
+    }
+  });
+});
