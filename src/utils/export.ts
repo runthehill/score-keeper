@@ -1,4 +1,4 @@
-import { Game, Player, GameEvent } from '../types';
+import type { Game, Player, GameEvent } from '../types';
 
 export function exportGameCSV(game: Game, events: GameEvent[], players: Player[]): string {
   const header = 'game_id,sport,home_team,away_team,timestamp,period,event_type,team,player_name,player_number,points,home_score_after,away_score_after';

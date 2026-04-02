@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { exportGameCSV, exportGameJSON } from './export';
-import { Game, Player, GameEvent } from '../types';
+import type { Game, Player, GameEvent } from '../types';
 
 const game: Game = {
   id: 'g1',

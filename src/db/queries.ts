@@ -1,5 +1,5 @@
-import { Database } from 'sql.js';
-import { Game, Player, GameEvent, Sport, Team, PlayerStatus } from '../types';
+import type { Database, BindParams } from 'sql.js';
+import type { Game, Player, GameEvent, Sport, Team, PlayerStatus } from '../types';
 
 function rowToGame(row: Record<string, unknown>): Game {
   return {
@@ -27,7 +27,7 @@ function rowToEvent(row: Record<string, unknown>): GameEvent {
   };
 }
 
-function query<T>(db: Database, sql: string, params: unknown[], mapper: (row: Record<string, unknown>) => T): T[] {
+function query<T>(db: Database, sql: string, params: BindParams, mapper: (row: Record<string, unknown>) => T): T[] {
   const stmt = db.prepare(sql);
   stmt.bind(params);
   const results: T[] = [];

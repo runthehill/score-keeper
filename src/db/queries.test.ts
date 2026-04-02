@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import initSqlJs, { Database } from 'sql.js';
+import initSqlJs from 'sql.js';
+import type { Database } from 'sql.js';
 import { createTables } from './schema';
 import {
   insertGame, getGame, listGames, updateGameScore, endGame,

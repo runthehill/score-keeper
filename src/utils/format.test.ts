@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatScore, formatGaelicScore, formatTimer, formatEventTime } from './format';
-import { GameEvent } from '../types';
+import type { GameEvent } from '../types';
 
 describe('formatScore', () => {
   it('formats single score as plain number', () => {

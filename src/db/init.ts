@@ -1,4 +1,5 @@
-import initSqlJs, { Database } from 'sql.js';
+import initSqlJs from 'sql.js';
+import type { Database } from 'sql.js';
 import { createTables } from './schema';
 
 const DB_KEY = 'score-keeper-db';

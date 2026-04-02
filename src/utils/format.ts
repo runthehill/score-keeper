@@ -1,4 +1,4 @@
-import { GameEvent, ScoreDisplay, Team } from '../types';
+import type { GameEvent, ScoreDisplay, Team } from '../types';
 
 export function formatScore(display: ScoreDisplay, totalPoints: number, events: Pick<GameEvent, 'event_type' | 'team'>[], team?: Team): string {
   if (display === 'split' && team) {

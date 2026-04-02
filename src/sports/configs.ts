@@ -1,4 +1,4 @@
-import { Sport, SportConfig } from '../types';
+import type { Sport, SportConfig } from '../types';
 
 export const SPORTS: SportConfig[] = [
   {
