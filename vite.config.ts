@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['sql-wasm.wasm'],
+      includeAssets: ['sql-wasm.wasm', 'sql-wasm-browser.wasm'],
       manifest: {
         name: 'Score Keeper',
         short_name: 'ScoreKeeper',
