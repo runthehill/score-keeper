@@ -24,8 +24,14 @@ export function useGame(gameId: string) {
     const g = getGame(db, gameId);
     if (g) {
       setGame(g);
-      setEvents(listEvents(db, gameId));
+      const evts = listEvents(db, gameId);
+      setEvents(evts);
       setPlayers(listPlayers(db, gameId));
+      // Derive current period from events so it survives page refresh
+      if (evts.length > 0) {
+        const maxPeriod = Math.max(...evts.map((e) => e.half_or_period));
+        setCurrentPeriod(maxPeriod);
+      }
     }
   }, [db, gameId]);
 

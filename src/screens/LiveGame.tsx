@@ -31,6 +31,8 @@ export default function LiveGame() {
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [pendingStatTeam, setPendingStatTeam] = useState<{ team: Team; eventType: string } | null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showStatTeamPicker, setShowStatTeamPicker] = useState<string | null>(null);
+  const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
 
   // Wake lock — keep screen on while scoring
   useEffect(() => {
@@ -96,13 +98,18 @@ export default function LiveGame() {
 
   const handleStat = useCallback(
     (eventType: string) => {
-      // For stats, we need to pick a team first, then optionally a player
-      // Simple approach: show team picker then player picker
-      // For now, use home team — we'll add team selection via the card picker pattern
+      setShowStatTeamPicker(eventType);
+    },
+    []
+  );
+
+  const handleStatTeamSelected = useCallback(
+    (team: Team, eventType: string) => {
+      setShowStatTeamPicker(null);
       if (hasPlayers) {
-        setPendingStatTeam({ team: 'home', eventType });
+        setPendingStatTeam({ team, eventType });
       } else {
-        addEvent('home', eventType, 0);
+        addEvent(team, eventType, 0);
       }
     },
     [hasPlayers, addEvent]
@@ -112,10 +119,15 @@ export default function LiveGame() {
     if (sport && currentPeriod >= sport.periods.count) {
       setShowEndConfirm(true);
     } else {
-      advancePeriod();
-      timer.reset();
+      setShowPeriodConfirm(true);
     }
-  }, [sport, currentPeriod, advancePeriod, timer]);
+  }, [sport, currentPeriod]);
+
+  const confirmAdvancePeriod = useCallback(() => {
+    advancePeriod();
+    timer.reset();
+    setShowPeriodConfirm(false);
+  }, [advancePeriod, timer]);
 
   const handleEndGame = useCallback(() => {
     endGame(db, gameId!, new Date().toISOString());
@@ -191,7 +203,7 @@ export default function LiveGame() {
       {/* Player picker for scoring */}
       {(pendingScore || pendingStatTeam) && hasPlayers && (
         <PlayerPicker
-          players={pendingScore ? players.filter((p) => p.team === pendingScore.team) : players}
+          players={pendingScore ? players.filter((p) => p.team === pendingScore.team) : pendingStatTeam ? players.filter((p) => p.team === pendingStatTeam.team) : players}
           title={pendingScore ? `Who scored the ${pendingScore.eventType.replace(/_/g, ' ')}?` : 'Which player?'}
           onSelect={handlePlayerSelected}
           onSkip={handleSkipPlayer}
@@ -238,6 +250,60 @@ export default function LiveGame() {
             <button onClick={() => setShowCardPicker(false)} className="w-full mt-3 py-3 text-center text-sm text-gray-500">
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Stat team picker */}
+      {showStatTeamPicker && (
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowStatTeamPicker(null)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative w-full bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
+            <p className="text-sm font-semibold text-gray-400 mb-3">Which team?</p>
+            <div className="space-y-2">
+              <button
+                onClick={() => handleStatTeamSelected('home', showStatTeamPicker)}
+                className="w-full bg-home-dark border border-home rounded-lg py-3 font-semibold text-home active:opacity-80"
+              >
+                {game.home_team}
+              </button>
+              <button
+                onClick={() => handleStatTeamSelected('away', showStatTeamPicker)}
+                className="w-full bg-away-dark border border-away rounded-lg py-3 font-semibold text-away active:opacity-80"
+              >
+                {game.away_team}
+              </button>
+            </div>
+            <button onClick={() => setShowStatTeamPicker(null)} className="w-full mt-3 py-3 text-center text-sm text-gray-500">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Period advance confirmation */}
+      {showPeriodConfirm && sport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowPeriodConfirm(false)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-2">Start {sport.periods.name} {currentPeriod + 1}?</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              The timer will reset to 00:00.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPeriodConfirm(false)}
+                className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAdvancePeriod}
+                className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold"
+              >
+                Next {sport.periods.name}
+              </button>
+            </div>
           </div>
         </div>
       )}

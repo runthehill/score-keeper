@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDB } from '../hooks/useDB';
 import { listGames, listEvents, listPlayers } from '../db/queries';
-import { exportGameJSON, downloadFile } from '../utils/export';
+import { downloadFile } from '../utils/export';
 import { clearDB } from '../db/init';
 
 const SETTINGS_KEY = 'score-keeper-settings';
@@ -38,7 +38,7 @@ export default function Settings() {
     const allData = games.map((game) => {
       const events = listEvents(db, game.id);
       const players = listPlayers(db, game.id);
-      return exportGameJSON(game, events, players);
+      return { game, players, events };
     });
     const json = JSON.stringify(allData, null, 2);
     downloadFile(json, 'score-keeper-all-data.json', 'application/json');

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { DBProvider, useDBReady } from './hooks/useDB';
 import TabBar from './components/TabBar';
 import Home from './screens/Home';
@@ -19,8 +19,11 @@ function AppRoutes() {
     );
   }
 
+  const location = useLocation();
+  const hideTabBar = location.pathname.startsWith('/game/') || location.pathname.startsWith('/summary/');
+
   return (
-    <div className="min-h-screen bg-surface-900 pb-20">
+    <div className={`min-h-screen bg-surface-900 ${hideTabBar ? '' : 'pb-20'}`}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/setup/:sportId" element={<GameSetup />} />
@@ -29,7 +32,7 @@ function AppRoutes() {
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
-      <TabBar />
+      {!hideTabBar && <TabBar />}
     </div>
   );
 }
