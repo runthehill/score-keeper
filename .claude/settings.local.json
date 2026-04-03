@@ -28,7 +28,8 @@
       "Bash(gh run:*)",
       "Bash(python3:*)",
       "Bash(git config:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

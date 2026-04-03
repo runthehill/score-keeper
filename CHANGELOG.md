@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-04-03
+
+### Fixed
+- Page headings overlapping device status bar / Dynamic Island in standalone PWA mode
+- Added safe area top padding to body so content clears the system UI
+
 ## [1.1.0] - 2026-04-03
 
 ### Added
