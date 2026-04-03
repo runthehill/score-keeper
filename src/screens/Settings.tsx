@@ -36,6 +36,7 @@ export default function Settings() {
   const { db } = useDB();
   const [settings, setSettings] = useState(loadSettings);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [shareMessage, setShareMessage] = useState('');
   const [editingSport, setEditingSport] = useState<Sport | null>(null);
   const [squadName, setSquadName] = useState('');
   const [squadPlayers, setSquadPlayers] = useState<DefaultSquadPlayer[]>([]);
@@ -186,6 +187,34 @@ export default function Settings() {
           className="w-full bg-surface-800 border border-red-900/50 rounded-xl py-3 text-sm font-semibold text-red-400 active:bg-surface-700"
         >
           Clear All Data
+        </button>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Share</h2>
+        <button
+          onClick={async () => {
+            const url = 'https://runthehill.github.io/score-keeper/';
+            const shareData = { title: "Jonathan's Score Keeper", text: 'Keep score at kids sports games — works offline!', url };
+            try {
+              if (navigator.share) {
+                await navigator.share(shareData);
+              } else {
+                await navigator.clipboard.writeText(url);
+                setShareMessage('Link copied!');
+                setTimeout(() => setShareMessage(''), 2000);
+              }
+            } catch (e) {
+              if ((e as Error).name !== 'AbortError') {
+                await navigator.clipboard.writeText(url);
+                setShareMessage('Link copied!');
+                setTimeout(() => setShareMessage(''), 2000);
+              }
+            }
+          }}
+          className="w-full bg-surface-800 border border-surface-600 rounded-xl py-3 text-sm font-semibold active:bg-surface-700"
+        >
+          {shareMessage || 'Share this app'}
         </button>
       </section>
 
