@@ -5,6 +5,7 @@ export const SPORTS: SportConfig[] = [
     id: 'rugby_union',
     name: 'Rugby Union',
     icon: '🏉',
+    defaultTeamName: 'Sligo Rugby Club',
     periods: { count: 2, name: 'Half' },
     scoreDisplay: 'single',
     scoringEvents: [
@@ -23,6 +24,7 @@ export const SPORTS: SportConfig[] = [
     id: 'soccer',
     name: 'Soccer',
     icon: '⚽',
+    defaultTeamName: 'Strand Celtic',
     periods: { count: 2, name: 'Half' },
     scoreDisplay: 'single',
     scoringEvents: [
@@ -40,6 +42,7 @@ export const SPORTS: SportConfig[] = [
     id: 'gaelic_football',
     name: 'Gaelic Football',
     icon: '🟢',
+    defaultTeamName: 'Coolera Strandhill',
     periods: { count: 2, name: 'Half' },
     scoreDisplay: 'split',
     scoringEvents: [
@@ -57,6 +60,7 @@ export const SPORTS: SportConfig[] = [
     id: 'basketball',
     name: 'Basketball',
     icon: '🏀',
+    defaultTeamName: 'Sligo All Stars',
     periods: { count: 4, name: 'Quarter' },
     scoreDisplay: 'single',
     scoringEvents: [

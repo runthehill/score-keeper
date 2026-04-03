@@ -118,7 +118,7 @@ export default function GameSetup() {
               type="text"
               value={homeTeam}
               onChange={(e) => setHomeTeam(e.target.value)}
-              placeholder="Home team name"
+              placeholder={sport.defaultTeamName}
               className={`${inputClass} ${defaultSquad ? '' : 'w-full'}`}
             />
             {defaultSquad && (
@@ -140,7 +140,7 @@ export default function GameSetup() {
               type="text"
               value={awayTeam}
               onChange={(e) => setAwayTeam(e.target.value)}
-              placeholder="Away team name"
+              placeholder="Opponent"
               className={`${inputClass} ${defaultSquad ? '' : 'w-full'}`}
             />
             {defaultSquad && (

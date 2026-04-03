@@ -70,6 +70,7 @@ export interface SportConfig {
   id: Sport;
   name: string;
   icon: string;
+  defaultTeamName: string;
   periods: { count: number; name: string };
   scoreDisplay: ScoreDisplay;
   scoringEvents: ScoringEventConfig[];
