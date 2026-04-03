@@ -29,3 +29,6 @@ coverage/
 
 # Superpowers brainstorm sessions
 .superpowers/
+
+# Claude local settings
+.claude/settings.local.json
