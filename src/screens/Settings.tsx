@@ -158,7 +158,7 @@ export default function Settings() {
             type="text"
             value={settings.defaultHomeTeam}
             onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))}
-            placeholder="e.g. St Mary's"
+            placeholder="e.g. Sligo All Stars"
             className={inputClass}
           />
         </div>
@@ -168,7 +168,7 @@ export default function Settings() {
             type="text"
             value={settings.defaultAwayTeam}
             onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))}
-            placeholder="e.g. Blackrock"
+            placeholder="e.g. Limerick Celtics"
             className={inputClass}
           />
         </div>
@@ -226,7 +226,7 @@ export default function Settings() {
           rel="noopener noreferrer"
           className="text-xs text-accent underline"
         >
-          github.com/runthehill/score-keeper
+          Github
         </a>
       </div>
 
@@ -255,7 +255,7 @@ export default function Settings() {
                   type="text"
                   value={squadName}
                   onChange={(e) => setSquadName(e.target.value)}
-                  placeholder="e.g. St Mary's U14"
+                  placeholder="e.g. Sligo All Stars"
                   className={inputClass}
                 />
               </div>

@@ -5,7 +5,7 @@ import type { Game, Player, GameEvent } from '../types';
 const game: Game = {
   id: 'g1',
   sport: 'rugby_union',
-  home_team: "St Mary's",
+  home_team: "Sligo RFC",
   away_team: 'Blackrock',
   home_score: 21,
   away_score: 14,
@@ -30,7 +30,7 @@ describe('exportGameCSV', () => {
     const lines = csv.trim().split('\n');
     expect(lines).toHaveLength(3);
     expect(lines[0]).toContain('game_id');
-    expect(lines[1]).toContain("St Mary's");
+    expect(lines[1]).toContain('Sligo RFC')
     expect(lines[1]).toContain('try');
     expect(lines[1]).toContain('John');
     expect(lines[2]).toContain('penalty');
