@@ -48,6 +48,7 @@ npx vitest           # Watch mode
 - All DB primary keys are UUIDs, timestamps are ISO 8601
 - TDD: write failing test, implement, verify pass
 - Persist DB to IndexedDB after every write operation
+- **Before every push**: bump the patch version in `package.json` and update `CHANGELOG.md` with what changed
 
 ## Key Files
 
