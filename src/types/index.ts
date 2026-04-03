@@ -56,6 +56,16 @@ export interface CardEventConfig {
   color: string;
 }
 
+export interface DefaultSquadPlayer {
+  name: string;
+  number: string;
+}
+
+export interface DefaultSquad {
+  teamName: string;
+  players: DefaultSquadPlayer[];
+}
+
 export interface SportConfig {
   id: Sport;
   name: string;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Team } from '../types';
 import { getSportConfig } from '../sports/configs';
@@ -29,6 +29,7 @@ export default function LiveGame() {
   } | null>(null);
   const [showSub, setShowSub] = useState(false);
   const [showCardPicker, setShowCardPicker] = useState(false);
+  const [pendingCard, setPendingCard] = useState<{ team: Team; cardType: string } | null>(null);
   const [pendingStatTeam, setPendingStatTeam] = useState<{ team: Team; eventType: string } | null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showStatTeamPicker, setShowStatTeamPicker] = useState<string | null>(null);
@@ -56,19 +57,37 @@ export default function LiveGame() {
   }, []);
 
   const sport = game ? getSportConfig(game.sport) : null;
-  const hasPlayers = players.length > 0;
   const homePlayers = players.filter((p) => p.team === 'home');
   const awayPlayers = players.filter((p) => p.team === 'away');
+  const hasHomePlayers = homePlayers.length > 0;
+  const hasAwayPlayers = awayPlayers.length > 0;
+  const hasAnyPlayers = players.length > 0;
+
+  // Helper: does a given team have players registered?
+  const teamHasPlayers = useCallback(
+    (team: Team) => (team === 'home' ? hasHomePlayers : hasAwayPlayers),
+    [hasHomePlayers, hasAwayPlayers]
+  );
+
+  // Basketball team fouls for current period
+  const teamFouls = useMemo(() => {
+    if (!sport || sport.id !== 'basketball') return null;
+    const periodEvents = events.filter((e) => e.half_or_period === currentPeriod && e.event_type === 'foul');
+    return {
+      home: periodEvents.filter((e) => e.team === 'home').length,
+      away: periodEvents.filter((e) => e.team === 'away').length,
+    };
+  }, [sport, events, currentPeriod]);
 
   const handleScore = useCallback(
     (team: Team, eventType: string, points: number) => {
-      if (hasPlayers) {
+      if (teamHasPlayers(team)) {
         setPendingScore({ team, eventType, points });
       } else {
         addEvent(team, eventType, points);
       }
     },
-    [hasPlayers, addEvent]
+    [teamHasPlayers, addEvent]
   );
 
   const handlePlayerSelected = useCallback(
@@ -81,8 +100,12 @@ export default function LiveGame() {
         addEvent(pendingStatTeam.team, pendingStatTeam.eventType, 0, playerId);
         setPendingStatTeam(null);
       }
+      if (pendingCard) {
+        addEvent(pendingCard.team, pendingCard.cardType, 0, playerId);
+        setPendingCard(null);
+      }
     },
-    [pendingScore, pendingStatTeam, addEvent]
+    [pendingScore, pendingStatTeam, pendingCard, addEvent]
   );
 
   const handleSkipPlayer = useCallback(() => {
@@ -94,7 +117,11 @@ export default function LiveGame() {
       addEvent(pendingStatTeam.team, pendingStatTeam.eventType, 0);
       setPendingStatTeam(null);
     }
-  }, [pendingScore, pendingStatTeam, addEvent]);
+    if (pendingCard) {
+      addEvent(pendingCard.team, pendingCard.cardType, 0);
+      setPendingCard(null);
+    }
+  }, [pendingScore, pendingStatTeam, pendingCard, addEvent]);
 
   const handleStat = useCallback(
     (eventType: string) => {
@@ -106,13 +133,26 @@ export default function LiveGame() {
   const handleStatTeamSelected = useCallback(
     (team: Team, eventType: string) => {
       setShowStatTeamPicker(null);
-      if (hasPlayers) {
+      if (teamHasPlayers(team)) {
         setPendingStatTeam({ team, eventType });
       } else {
         addEvent(team, eventType, 0);
       }
     },
-    [hasPlayers, addEvent]
+    [teamHasPlayers, addEvent]
+  );
+
+  // Card flow: pick card type → pick team → pick player (if team has players)
+  const handleCardTeamSelected = useCallback(
+    (team: Team, cardType: string) => {
+      setShowCardPicker(false);
+      if (teamHasPlayers(team)) {
+        setPendingCard({ team, cardType });
+      } else {
+        addEvent(team, cardType, 0);
+      }
+    },
+    [teamHasPlayers, addEvent]
   );
 
   const handleAdvancePeriod = useCallback(() => {
@@ -139,8 +179,17 @@ export default function LiveGame() {
     return <div className="p-4 text-gray-400">Loading game...</div>;
   }
 
+  // Determine which pending action needs a player picker
+  const pendingAction = pendingScore || pendingStatTeam || pendingCard;
+  const pendingTeam = pendingScore?.team ?? pendingStatTeam?.team ?? pendingCard?.team;
+  const pendingTitle = pendingScore
+    ? `Who scored the ${pendingScore.eventType.replace(/_/g, ' ')}?`
+    : pendingCard
+      ? `Who received the card?`
+      : 'Which player?';
+
   return (
-    <div className="p-3 space-y-3 pb-24">
+    <div className="p-3 space-y-3 pb-8">
       {/* Sport badge + period */}
       <div className="flex items-center justify-between">
         <span className="bg-accent px-3 py-1 rounded-full text-xs font-semibold">
@@ -153,6 +202,18 @@ export default function LiveGame() {
 
       {/* Scoreboard */}
       <Scoreboard game={game} events={events} />
+
+      {/* Basketball team fouls */}
+      {teamFouls && (
+        <div className="flex justify-between px-4 text-xs">
+          <span className={`font-semibold ${teamFouls.home >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+            Team Fouls: {teamFouls.home}{teamFouls.home >= 5 ? ' BONUS' : ''}
+          </span>
+          <span className={`font-semibold ${teamFouls.away >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+            Team Fouls: {teamFouls.away}{teamFouls.away >= 5 ? ' BONUS' : ''}
+          </span>
+        </div>
+      )}
 
       {/* Timer */}
       <Timer seconds={timer.seconds} running={timer.running} onToggle={timer.toggle} />
@@ -176,7 +237,7 @@ export default function LiveGame() {
       {/* Actions row */}
       <ActionsRow
         sport={sport}
-        hasPlayers={hasPlayers}
+        hasPlayers={hasAnyPlayers}
         onCard={() => setShowCardPicker(true)}
         onSub={() => setShowSub(true)}
         onUndo={undoLastEvent}
@@ -200,14 +261,14 @@ export default function LiveGame() {
         End Game
       </button>
 
-      {/* Player picker for scoring */}
-      {(pendingScore || pendingStatTeam) && hasPlayers && (
+      {/* Player picker for scoring, stats, and cards */}
+      {pendingAction && pendingTeam && teamHasPlayers(pendingTeam) && (
         <PlayerPicker
-          players={pendingScore ? players.filter((p) => p.team === pendingScore.team) : pendingStatTeam ? players.filter((p) => p.team === pendingStatTeam.team) : players}
-          title={pendingScore ? `Who scored the ${pendingScore.eventType.replace(/_/g, ' ')}?` : 'Which player?'}
+          players={players.filter((p) => p.team === pendingTeam)}
+          title={pendingTitle}
           onSelect={handlePlayerSelected}
           onSkip={handleSkipPlayer}
-          onClose={() => { setPendingScore(null); setPendingStatTeam(null); }}
+          onClose={() => { setPendingScore(null); setPendingStatTeam(null); setPendingCard(null); }}
         />
       )}
 
@@ -223,7 +284,7 @@ export default function LiveGame() {
         />
       )}
 
-      {/* Card picker — pick card type, then team */}
+      {/* Card picker — pick card type + team, then player */}
       {showCardPicker && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowCardPicker(false)}>
           <div className="absolute inset-0 bg-black/60" />
@@ -233,13 +294,13 @@ export default function LiveGame() {
               {sport.cardEvents.map((card) => (
                 <div key={card.type} className="flex gap-2">
                   <button
-                    onClick={() => { addEvent('home', card.type, 0); setShowCardPicker(false); }}
+                    onClick={() => handleCardTeamSelected('home', card.type)}
                     className="flex-1 bg-home-dark border border-home rounded-lg py-3 text-sm font-medium"
                   >
                     <span style={{ color: card.color }}>●</span> {card.label} — {game.home_team}
                   </button>
                   <button
-                    onClick={() => { addEvent('away', card.type, 0); setShowCardPicker(false); }}
+                    onClick={() => handleCardTeamSelected('away', card.type)}
                     className="flex-1 bg-away-dark border border-away rounded-lg py-3 text-sm font-medium"
                   >
                     <span style={{ color: card.color }}>●</span> {card.label} — {game.away_team}

@@ -23,7 +23,9 @@
       "Read(//Users/jonathanhill/Projects/vibes/score-keeper/**)",
       "Bash(wait)",
       "Bash(curl -sI http://localhost:5175/sql-wasm.wasm)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(gh run:*)"
     ]
   }
 }

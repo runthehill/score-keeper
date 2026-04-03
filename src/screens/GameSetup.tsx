@@ -5,6 +5,7 @@ import type { Sport, Player, Team } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { insertGame, insertPlayer } from '../db/queries';
+import { loadSettings } from './Settings';
 
 interface DraftPlayer {
   name: string;
@@ -17,25 +18,29 @@ export default function GameSetup() {
   const navigate = useNavigate();
   const { db, persist } = useDB();
   const sport = getSportConfig(sportId as Sport);
+  const appSettings = loadSettings();
+  const defaultSquad = appSettings.squads[sport.id];
 
-  const [homeTeam, setHomeTeam] = useState(() => {
-    try {
-      const s = localStorage.getItem('score-keeper-settings');
-      return s ? JSON.parse(s).defaultHomeTeam || '' : '';
-    } catch { return ''; }
-  });
-  const [awayTeam, setAwayTeam] = useState(() => {
-    try {
-      const s = localStorage.getItem('score-keeper-settings');
-      return s ? JSON.parse(s).defaultAwayTeam || '' : '';
-    } catch { return ''; }
-  });
+  const [homeTeam, setHomeTeam] = useState(appSettings.defaultHomeTeam || '');
+  const [awayTeam, setAwayTeam] = useState(appSettings.defaultAwayTeam || '');
   const [showPlayers, setShowPlayers] = useState(false);
   const [homePlayers, setHomePlayers] = useState<DraftPlayer[]>([]);
   const [awayPlayers, setAwayPlayers] = useState<DraftPlayer[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
   const [addingFor, setAddingFor] = useState<Team>('home');
+
+  const loadSquad = (team: Team) => {
+    if (!defaultSquad) return;
+    if (team === 'home') {
+      setHomeTeam(defaultSquad.teamName);
+      setHomePlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
+    } else {
+      setAwayTeam(defaultSquad.teamName);
+      setAwayPlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
+    }
+    setShowPlayers(true);
+  };
 
   const addPlayer = () => {
     if (!newPlayerName.trim()) return;
@@ -108,25 +113,45 @@ export default function GameSetup() {
           <label className="text-xs text-home uppercase tracking-wider font-semibold mb-1 block">
             Home Team
           </label>
-          <input
-            type="text"
-            value={homeTeam}
-            onChange={(e) => setHomeTeam(e.target.value)}
-            placeholder="Home team name"
-            className={inputClass}
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={homeTeam}
+              onChange={(e) => setHomeTeam(e.target.value)}
+              placeholder="Home team name"
+              className={`${inputClass} ${defaultSquad ? '' : 'w-full'}`}
+            />
+            {defaultSquad && (
+              <button
+                onClick={() => loadSquad('home')}
+                className="shrink-0 bg-home-dark border border-home rounded-lg px-3 text-xs font-semibold text-home active:opacity-80"
+              >
+                {defaultSquad.teamName}
+              </button>
+            )}
+          </div>
         </div>
         <div>
           <label className="text-xs text-away uppercase tracking-wider font-semibold mb-1 block">
             Away Team
           </label>
-          <input
-            type="text"
-            value={awayTeam}
-            onChange={(e) => setAwayTeam(e.target.value)}
-            placeholder="Away team name"
-            className={inputClass}
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={awayTeam}
+              onChange={(e) => setAwayTeam(e.target.value)}
+              placeholder="Away team name"
+              className={`${inputClass} ${defaultSquad ? '' : 'w-full'}`}
+            />
+            {defaultSquad && (
+              <button
+                onClick={() => loadSquad('away')}
+                className="shrink-0 bg-away-dark border border-away rounded-lg px-3 text-xs font-semibold text-away active:opacity-80"
+              >
+                {defaultSquad.teamName}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
