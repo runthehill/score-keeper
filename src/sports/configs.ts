@@ -1,15 +1,13 @@
-import type { Sport, SportConfig } from '../types';
+import type { Sport, SportConfig } from '../types'
 
 export const SPORTS: SportConfig[] = [
   {
     id: 'rugby_union',
     name: 'Rugby Union',
     icon: '🏉',
-    defaultTeamName: 'Sligo Rugby Club',
+    defaultTeamName: 'Sligo RFC',
     periods: { count: 2, name: 'Half' },
-    extraPeriods: [
-      { type: 'extra_time', label: 'Extra Time' },
-    ],
+    extraPeriods: [{ type: 'extra_time', label: 'Extra Time' }],
     scoreDisplay: 'single',
     scoringEvents: [
       { type: 'try', label: 'Try', points: 5, icon: '🏉' },
@@ -34,12 +32,8 @@ export const SPORTS: SportConfig[] = [
       { type: 'penalties', label: 'Penalties' },
     ],
     scoreDisplay: 'single',
-    scoringEvents: [
-      { type: 'goal', label: 'Goal', points: 1, icon: '⚽' },
-    ],
-    statEvents: [
-      { type: 'assist', label: 'Assist', icon: '👟' },
-    ],
+    scoringEvents: [{ type: 'goal', label: 'Goal', points: 1, icon: '⚽' }],
+    statEvents: [{ type: 'assist', label: 'Assist', icon: '👟' }],
     cardEvents: [
       { type: 'card_yellow', label: 'Yellow Card', color: '#facc15' },
       { type: 'card_red', label: 'Red Card', color: '#ef4444' },
@@ -51,9 +45,7 @@ export const SPORTS: SportConfig[] = [
     icon: '🟢',
     defaultTeamName: 'Coolera Strandhill',
     periods: { count: 2, name: 'Half' },
-    extraPeriods: [
-      { type: 'extra_time', label: 'Extra Time' },
-    ],
+    extraPeriods: [{ type: 'extra_time', label: 'Extra Time' }],
     scoreDisplay: 'split',
     scoringEvents: [
       { type: 'goal', label: 'Goal', points: 3, icon: '🥅' },
@@ -76,9 +68,7 @@ export const SPORTS: SportConfig[] = [
       { count: 2, name: 'Half' },
       { count: 4, name: 'Quarter' },
     ],
-    extraPeriods: [
-      { type: 'overtime', label: 'Overtime' },
-    ],
+    extraPeriods: [{ type: 'overtime', label: 'Overtime' }],
     scoreDisplay: 'single',
     scoringEvents: [
       { type: 'free_throw', label: 'FT', points: 1, icon: '🏀' },
@@ -92,10 +82,10 @@ export const SPORTS: SportConfig[] = [
     ],
     cardEvents: [],
   },
-];
+]
 
 export function getSportConfig(id: Sport): SportConfig {
-  const config = SPORTS.find((s) => s.id === id);
-  if (!config) throw new Error(`Unknown sport: ${id}`);
-  return config;
+  const config = SPORTS.find((s) => s.id === id)
+  if (!config) throw new Error(`Unknown sport: ${id}`)
+  return config
 }

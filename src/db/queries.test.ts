@@ -18,7 +18,13 @@ beforeEach(async () => {
 
 describe('games', () => {
   it('inserts and retrieves a game', () => {
-    insertGame(db, { id: 'g1', sport: 'rugby_union', home_team: "St Mary's", away_team: 'Blackrock', started_at: '2026-04-02T10:00:00.000Z' });
+    insertGame(db, {
+      id: 'g1',
+      sport: 'rugby_union',
+      home_team: 'Sligo RFC',
+      away_team: 'Blackrock',
+      started_at: '2026-04-02T10:00:00.000Z',
+    })
     const game = getGame(db, 'g1');
     expect(game).toBeDefined();
     expect(game!.sport).toBe('rugby_union');
