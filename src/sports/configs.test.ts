@@ -59,4 +59,29 @@ describe('sport configs', () => {
       }
     }
   });
+
+  it('basketball has period options for halves and quarters', () => {
+    const config = getSportConfig('basketball');
+    expect(config.periodOptions).toBeDefined();
+    expect(config.periodOptions).toHaveLength(2);
+    expect(config.periodOptions!.find((o) => o.name === 'Half')).toBeDefined();
+    expect(config.periodOptions!.find((o) => o.name === 'Quarter')).toBeDefined();
+  });
+
+  it('soccer has extra time and penalties', () => {
+    const config = getSportConfig('soccer');
+    expect(config.extraPeriods.find((e) => e.type === 'extra_time')).toBeDefined();
+    expect(config.extraPeriods.find((e) => e.type === 'penalties')).toBeDefined();
+  });
+
+  it('basketball has overtime', () => {
+    const config = getSportConfig('basketball');
+    expect(config.extraPeriods.find((e) => e.type === 'overtime')).toBeDefined();
+  });
+
+  it('all sports have extraPeriods array', () => {
+    for (const sport of SPORTS) {
+      expect(Array.isArray(sport.extraPeriods), `${sport.id}.extraPeriods`).toBe(true);
+    }
+  });
 });

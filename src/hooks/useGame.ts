@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { v4 as uuid } from 'uuid';
-import type { Game, GameEvent, Player, Team } from '../types';
+import type { Game, GameEvent, GameMetadata, Player, Team } from '../types';
+import { getSportConfig } from '../sports/configs';
 import { useDB } from './useDB';
 import {
   getGame,
@@ -13,12 +14,22 @@ import {
   updatePlayerStatus,
 } from '../db/queries';
 
+function parseMetadata(game: Game): GameMetadata {
+  if (!game.notes) return {};
+  try { return JSON.parse(game.notes) as GameMetadata; } catch { return {}; }
+}
+
 export function useGame(gameId: string) {
   const { db, persist } = useDB();
   const [game, setGame] = useState<Game | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPeriod, setCurrentPeriod] = useState(1);
+
+  const sport = game ? getSportConfig(game.sport) : null;
+  const metadata = useMemo(() => game ? parseMetadata(game) : {}, [game]);
+  const periodCount = metadata.periodCount ?? sport?.periods.count ?? 2;
+  const periodName = metadata.periodName ?? sport?.periods.name ?? 'Half';
 
   const reload = useCallback(() => {
     const g = getGame(db, gameId);
@@ -27,7 +38,6 @@ export function useGame(gameId: string) {
       const evts = listEvents(db, gameId);
       setEvents(evts);
       setPlayers(listPlayers(db, gameId));
-      // Derive current period from events so it survives page refresh
       if (evts.length > 0) {
         const maxPeriod = Math.max(...evts.map((e) => e.half_or_period));
         setCurrentPeriod(maxPeriod);
@@ -117,6 +127,8 @@ export function useGame(gameId: string) {
     events,
     players,
     currentPeriod,
+    periodCount,
+    periodName,
     addEvent,
     undoLastEvent,
     advancePeriod,

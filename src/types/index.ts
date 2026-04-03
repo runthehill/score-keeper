@@ -66,12 +66,29 @@ export interface DefaultSquad {
   players: DefaultSquadPlayer[];
 }
 
+export interface PeriodConfig {
+  count: number;
+  name: string;
+}
+
+export interface ExtraPeriodConfig {
+  type: 'extra_time' | 'overtime' | 'penalties';
+  label: string;
+}
+
+export interface GameMetadata {
+  periodCount?: number;
+  periodName?: string;
+}
+
 export interface SportConfig {
   id: Sport;
   name: string;
   icon: string;
   defaultTeamName: string;
-  periods: { count: number; name: string };
+  periods: PeriodConfig;
+  periodOptions?: PeriodConfig[];
+  extraPeriods: ExtraPeriodConfig[];
   scoreDisplay: ScoreDisplay;
   scoringEvents: ScoringEventConfig[];
   statEvents: StatEventConfig[];

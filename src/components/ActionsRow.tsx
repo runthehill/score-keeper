@@ -9,6 +9,9 @@ interface Props {
   onAdvancePeriod: () => void;
   onStat: (eventType: string) => void;
   currentPeriod: number;
+  periodCount: number;
+  periodName: string;
+  extraPeriodLabel: string | null;
 }
 
 export default function ActionsRow({
@@ -20,9 +23,19 @@ export default function ActionsRow({
   onAdvancePeriod,
   onStat,
   currentPeriod,
+  periodCount,
+  periodName,
+  extraPeriodLabel,
 }: Props) {
-  const periodLabel = `${sport.periods.name} ${currentPeriod}`;
+  const isExtra = currentPeriod > periodCount;
   const btnClass = 'flex-1 bg-surface-600 rounded-lg py-2.5 text-center text-xs font-medium text-gray-300 active:bg-surface-700';
+
+  let periodButtonLabel: string;
+  if (isExtra || currentPeriod >= periodCount) {
+    periodButtonLabel = extraPeriodLabel ? `End ${extraPeriodLabel}` : 'Full Time';
+  } else {
+    periodButtonLabel = `Next ${periodName}`;
+  }
 
   return (
     <div className="space-y-2">
@@ -44,7 +57,7 @@ export default function ActionsRow({
         )}
         <button onClick={onUndo} className={btnClass}>↩ Undo</button>
         <button onClick={onAdvancePeriod} className={btnClass}>
-          ▶ {currentPeriod < sport.periods.count ? `Next ${sport.periods.name}` : periodLabel}
+          ▶ {periodButtonLabel}
         </button>
       </div>
     </div>

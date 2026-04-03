@@ -18,7 +18,7 @@ export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const { db, persist } = useDB();
-  const { game, events, players, currentPeriod, addEvent, undoLastEvent, advancePeriod, substitute } =
+  const { game, events, players, currentPeriod, periodCount, periodName, addEvent, undoLastEvent, advancePeriod, substitute } =
     useGame(gameId!);
   const timer = useTimer();
 
@@ -31,9 +31,11 @@ export default function LiveGame() {
   const [showCardPicker, setShowCardPicker] = useState(false);
   const [pendingCard, setPendingCard] = useState<{ team: Team; cardType: string } | null>(null);
   const [pendingStatTeam, setPendingStatTeam] = useState<{ team: Team; eventType: string } | null>(null);
+  const [showEndOptions, setShowEndOptions] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showStatTeamPicker, setShowStatTeamPicker] = useState<string | null>(null);
   const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
+  const [extraPeriodLabel, setExtraPeriodLabel] = useState<string | null>(null);
 
   // Wake lock — keep screen on while scoring
   useEffect(() => {
@@ -155,13 +157,17 @@ export default function LiveGame() {
     [teamHasPlayers, addEvent]
   );
 
+  // Is the game in an extra period (beyond regular time)?
+  const isExtraPeriod = currentPeriod > periodCount;
+
   const handleAdvancePeriod = useCallback(() => {
-    if (sport && currentPeriod >= sport.periods.count) {
-      setShowEndConfirm(true);
+    if (currentPeriod >= periodCount) {
+      // End of regulation (or end of extra period) — show options
+      setShowEndOptions(true);
     } else {
       setShowPeriodConfirm(true);
     }
-  }, [sport, currentPeriod]);
+  }, [currentPeriod, periodCount]);
 
   const confirmAdvancePeriod = useCallback(() => {
     advancePeriod();
@@ -196,7 +202,9 @@ export default function LiveGame() {
           {sport.name.toUpperCase()}
         </span>
         <span className="text-xs text-gray-400">
-          {sport.periods.name} {currentPeriod} of {sport.periods.count}
+          {extraPeriodLabel
+            ? extraPeriodLabel
+            : `${periodName} ${currentPeriod} of ${periodCount}`}
         </span>
       </div>
 
@@ -244,6 +252,9 @@ export default function LiveGame() {
         onAdvancePeriod={handleAdvancePeriod}
         onStat={handleStat}
         currentPeriod={currentPeriod}
+        periodCount={periodCount}
+        periodName={periodName}
+        extraPeriodLabel={extraPeriodLabel}
       />
 
       {/* Event log */}
@@ -255,7 +266,7 @@ export default function LiveGame() {
 
       {/* End game button */}
       <button
-        onClick={() => setShowEndConfirm(true)}
+        onClick={() => setShowEndOptions(true)}
         className="w-full py-3 text-center text-sm text-gray-500 border border-surface-600 rounded-lg"
       >
         End Game
@@ -347,7 +358,7 @@ export default function LiveGame() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowPeriodConfirm(false)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">Start {sport.periods.name} {currentPeriod + 1}?</h3>
+            <h3 className="text-lg font-bold mb-2">Start {periodName} {currentPeriod + 1}?</h3>
             <p className="text-sm text-gray-400 mb-4">
               The timer will reset to 00:00.
             </p>
@@ -362,28 +373,71 @@ export default function LiveGame() {
                 onClick={confirmAdvancePeriod}
                 className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold"
               >
-                Next {sport.periods.name}
+                Next {periodName}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* End game confirmation */}
+      {/* End of regulation options — End Game / Extra Time / Overtime / Penalties */}
+      {showEndOptions && sport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowEndOptions(false)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-1">
+              {isExtraPeriod ? `End of ${extraPeriodLabel}` : `End of ${periodName} ${currentPeriod}`}
+            </h3>
+            <p className="text-sm text-gray-400 mb-4">
+              {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
+            </p>
+            <div className="space-y-2">
+              {sport.extraPeriods.map((ep) => (
+                <button
+                  key={ep.type}
+                  onClick={() => {
+                    setShowEndOptions(false);
+                    setExtraPeriodLabel(ep.label);
+                    advancePeriod();
+                    timer.reset();
+                  }}
+                  className="w-full py-3 bg-surface-700 rounded-lg text-sm font-semibold active:bg-surface-600"
+                >
+                  {ep.label}
+                </button>
+              ))}
+              <button
+                onClick={() => { setShowEndOptions(false); setShowEndConfirm(true); }}
+                className="w-full py-3 bg-accent rounded-lg text-sm font-bold"
+              >
+                End Game
+              </button>
+              <button
+                onClick={() => setShowEndOptions(false)}
+                className="w-full py-3 text-center text-sm text-gray-500"
+              >
+                Continue Playing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* End game final confirmation */}
       {showEndConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowEndConfirm(false)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">End Game?</h3>
             <p className="text-sm text-gray-400 mb-4">
-              {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
+              Final score: {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowEndConfirm(false)}
                 className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
               >
-                Continue
+                Cancel
               </button>
               <button
                 onClick={handleEndGame}

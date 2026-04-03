@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { Game, GameEvent, Player } from '../types';
+import type { Game, GameEvent, GameMetadata, Player } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { getGame, listEvents, listPlayers } from '../db/queries';
@@ -28,8 +28,16 @@ export default function GameSummary() {
   const sport = getSportConfig(game.sport);
   const isSplit = sport.scoreDisplay === 'split';
 
+  let metadata: GameMetadata = {};
+  try { if (game.notes) metadata = JSON.parse(game.notes) as GameMetadata; } catch {}
+  const periodCount = metadata.periodCount ?? sport.periods.count;
+  const periodName = metadata.periodName ?? sport.periods.name;
+
+  // Derive actual max period from events (accounts for extra time / overtime)
+  const maxPeriod = events.length > 0 ? Math.max(...events.map((e) => e.half_or_period)) : periodCount;
+
   // Period breakdown
-  const periodScores = Array.from({ length: sport.periods.count }, (_, i) => {
+  const periodScores = Array.from({ length: maxPeriod }, (_, i) => {
     const periodEvents = events.filter((e) => e.half_or_period === i + 1);
     const home = periodEvents.filter((e) => e.team === 'home').reduce((s, e) => s + e.points, 0);
     const away = periodEvents.filter((e) => e.team === 'away').reduce((s, e) => s + e.points, 0);
@@ -91,13 +99,13 @@ export default function GameSummary() {
       {/* Period breakdown */}
       <div className="bg-surface-800 rounded-xl p-4">
         <h2 className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">
-          By {sport.periods.name}
+          By Period
         </h2>
         <div className="space-y-2">
           {periodScores.map((ps) => (
             <div key={ps.period} className="flex items-center justify-between text-sm">
               <span className="text-gray-500">
-                {sport.periods.name} {ps.period}
+                {ps.period <= periodCount ? `${periodName} ${ps.period}` : `Extra ${ps.period - periodCount}`}
               </span>
               <span>
                 <span className="text-home font-semibold">{ps.home}</span>

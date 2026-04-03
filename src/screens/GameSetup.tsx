@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
-import type { Sport, Player, Team } from '../types';
+import type { Sport, Player, Team, GameMetadata, PeriodConfig } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { insertGame, insertPlayer } from '../db/queries';
@@ -29,6 +29,7 @@ export default function GameSetup() {
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
   const [addingFor, setAddingFor] = useState<Team>('home');
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodConfig>(sport.periods);
 
   const loadSquad = (team: Team) => {
     if (!defaultSquad) return;
@@ -70,12 +71,17 @@ export default function GameSetup() {
     if (!homeTeam.trim() || !awayTeam.trim()) return;
 
     const gameId = uuid();
+    const metadata: GameMetadata = {
+      periodCount: selectedPeriod.count,
+      periodName: selectedPeriod.name,
+    };
     insertGame(db, {
       id: gameId,
       sport: sport.id,
       home_team: homeTeam.trim(),
       away_team: awayTeam.trim(),
       started_at: new Date().toISOString(),
+      notes: JSON.stringify(metadata),
     });
 
     const savePlayers = (drafts: DraftPlayer[], team: Team) => {
@@ -154,6 +160,30 @@ export default function GameSetup() {
           </div>
         </div>
       </div>
+
+      {/* Period selector for sports with options (e.g. basketball halves vs quarters) */}
+      {sport.periodOptions && sport.periodOptions.length > 1 && (
+        <div>
+          <label className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-2 block">
+            Game Format
+          </label>
+          <div className="flex gap-2">
+            {sport.periodOptions.map((opt) => (
+              <button
+                key={opt.name}
+                onClick={() => setSelectedPeriod(opt)}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold ${
+                  selectedPeriod.count === opt.count && selectedPeriod.name === opt.name
+                    ? 'bg-accent text-white'
+                    : 'bg-surface-700 text-gray-400'
+                }`}
+              >
+                {opt.count} {opt.name}s
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {!showPlayers ? (
         <button

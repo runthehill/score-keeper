@@ -36,9 +36,9 @@ function query<T>(db: Database, sql: string, params: BindParams, mapper: (row: R
   return results;
 }
 
-export function insertGame(db: Database, game: { id: string; sport: string; home_team: string; away_team: string; started_at: string }) {
-  db.run('INSERT INTO games (id, sport, home_team, away_team, started_at) VALUES (?, ?, ?, ?, ?)',
-    [game.id, game.sport, game.home_team, game.away_team, game.started_at]);
+export function insertGame(db: Database, game: { id: string; sport: string; home_team: string; away_team: string; started_at: string; notes?: string }) {
+  db.run('INSERT INTO games (id, sport, home_team, away_team, started_at, notes) VALUES (?, ?, ?, ?, ?, ?)',
+    [game.id, game.sport, game.home_team, game.away_team, game.started_at, game.notes ?? '']);
 }
 
 export function getGame(db: Database, id: string): Game | undefined {
