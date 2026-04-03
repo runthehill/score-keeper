@@ -6,6 +6,18 @@
   body {
     @apply bg-surface-900 text-white antialiased;
   }
+
+  @media (display-mode: standalone) {
+    body {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+  }
+
+  @media (display-mode: fullscreen) {
+    body {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+  }
 }
 
 @layer utilities {
