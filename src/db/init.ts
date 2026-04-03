@@ -39,7 +39,7 @@ let _db: Database | null = null;
 export async function getDB(): Promise<Database> {
   if (_db) return _db;
   const SQL = await initSqlJs({
-    locateFile: () => '/sql-wasm-browser.wasm',
+    locateFile: () => `${import.meta.env.BASE_URL}sql-wasm-browser.wasm`,
   });
   const saved = await loadFromIDB();
   _db = saved ? new SQL.Database(saved) : new SQL.Database();

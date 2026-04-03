@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { DBProvider, useDBReady } from './hooks/useDB';
 import TabBar from './components/TabBar';
 import Home from './screens/Home';
@@ -38,10 +38,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <DBProvider>
         <AppRoutes />
       </DBProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
