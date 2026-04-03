@@ -44,7 +44,7 @@ npx vitest           # Watch mode
 
 - Use `gh` CLI for all GitHub operations (PRs, issues, etc.)
 - Dark theme colors: surface-900 (#0f0f23), surface-800 (#1a1a2e), surface-700 (#16213e)
-- Team colors: home = green (#4ecca3), away = red (#e94560)
+- Team colors: home = blue (#3b82f6), away = amber (#f59e0b) — neutral, no good/bad connotation
 - All DB primary keys are UUIDs, timestamps are ISO 8601
 - TDD: write failing test, implement, verify pass
 - Persist DB to IndexedDB after every write operation
