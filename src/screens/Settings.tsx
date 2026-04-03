@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Sport, DefaultSquadPlayer } from '../types';
-import { SPORTS } from '../sports/configs';
+import { SPORTS, getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { listGames, listEvents, listPlayers } from '../db/queries';
 import { downloadFile } from '../utils/export';
@@ -46,8 +46,9 @@ export default function Settings() {
 
   const openSquadEditor = (sportId: Sport) => {
     const squad = settings.squads[sportId];
+    const sportConfig = getSportConfig(sportId);
     setEditingSport(sportId);
-    setSquadName(squad?.teamName ?? '');
+    setSquadName(squad?.teamName ?? sportConfig.defaultTeamName);
     setSquadPlayers(squad?.players ? [...squad.players] : []);
     setNewName('');
     setNewNumber('');
