@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { version } from './package.json';
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   base: '/score-keeper/',
   plugins: [
     react(),
@@ -10,7 +14,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['sql-wasm.wasm', 'sql-wasm-browser.wasm'],
       manifest: {
-        name: 'Score Keeper',
+        name: "Jonathan's Score Keeper",
         short_name: 'ScoreKeeper',
         description: 'Keep score at kids sports games',
         theme_color: '#0f0f23',

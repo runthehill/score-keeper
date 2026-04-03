@@ -3,6 +3,8 @@ import type { Sport, DefaultSquadPlayer } from '../types';
 import { SPORTS, getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { listGames, listEvents, listPlayers } from '../db/queries';
+
+const APP_VERSION = __APP_VERSION__;
 import { downloadFile } from '../utils/export';
 import { clearDB } from '../db/init';
 
@@ -187,7 +189,17 @@ export default function Settings() {
         </button>
       </section>
 
-      <p className="text-xs text-gray-600 text-center pt-4">Score Keeper v1.0</p>
+      <div className="text-center pt-4 space-y-1">
+        <p className="text-xs text-gray-600">Jonathan's Score Keeper v{APP_VERSION}</p>
+        <a
+          href="https://github.com/runthehill/score-keeper"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-accent underline"
+        >
+          github.com/runthehill/score-keeper
+        </a>
+      </div>
 
       {/* Squad editor modal */}
       {editingSport && (

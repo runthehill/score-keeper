@@ -25,7 +25,8 @@
       "Bash(curl -sI http://localhost:5175/sql-wasm.wasm)",
       "Bash(git push:*)",
       "Bash(gh api:*)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(python3:*)"
     ]
   }
 }
