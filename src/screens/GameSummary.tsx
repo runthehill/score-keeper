@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { GameMetadata } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { getGame, listEvents, listPlayers } from '../db/queries';
 import { formatGaelicScore } from '../utils/format';
+import ShareSheet from '../components/ShareSheet';
 import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
 
 export default function GameSummary() {
@@ -13,6 +14,7 @@ export default function GameSummary() {
   const game = useMemo(() => (gameId ? getGame(db, gameId) ?? null : null), [db, gameId]);
   const events = useMemo(() => (gameId ? listEvents(db, gameId) : []), [db, gameId]);
   const players = useMemo(() => (gameId ? listPlayers(db, gameId) : []), [db, gameId]);
+  const [showShare, setShowShare] = useState(false);
 
   if (!game) {
     return <div className="p-4 text-gray-400">Game not found</div>;
@@ -137,6 +139,24 @@ export default function GameSummary() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Share */}
+      <button
+        onClick={() => setShowShare(true)}
+        className="w-full bg-accent rounded-xl py-3 text-sm font-bold active:opacity-90"
+      >
+        Share result
+      </button>
+
+      {showShare && (
+        <ShareSheet
+          game={game}
+          events={events}
+          sport={sport}
+          variant="final"
+          onClose={() => setShowShare(false)}
+        />
       )}
 
       {/* Export */}
