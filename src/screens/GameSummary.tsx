@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { Game, GameEvent, GameMetadata, Player } from '../types';
+import type { GameMetadata } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { getGame, listEvents, listPlayers } from '../db/queries';
@@ -10,16 +10,9 @@ import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
 export default function GameSummary() {
   const { gameId } = useParams<{ gameId: string }>();
   const { db } = useDB();
-  const [game, setGame] = useState<Game | null>(null);
-  const [events, setEvents] = useState<GameEvent[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  useEffect(() => {
-    if (!gameId) return;
-    setGame(getGame(db, gameId) ?? null);
-    setEvents(listEvents(db, gameId));
-    setPlayers(listPlayers(db, gameId));
-  }, [db, gameId]);
+  const game = useMemo(() => (gameId ? getGame(db, gameId) ?? null : null), [db, gameId]);
+  const events = useMemo(() => (gameId ? listEvents(db, gameId) : []), [db, gameId]);
+  const players = useMemo(() => (gameId ? listPlayers(db, gameId) : []), [db, gameId]);
 
   if (!game) {
     return <div className="p-4 text-gray-400">Game not found</div>;
@@ -29,7 +22,7 @@ export default function GameSummary() {
   const isSplit = sport.scoreDisplay === 'split';
 
   let metadata: GameMetadata = {};
-  try { if (game.notes) metadata = JSON.parse(game.notes) as GameMetadata; } catch {}
+  try { if (game.notes) metadata = JSON.parse(game.notes) as GameMetadata; } catch { /* malformed notes JSON — keep default metadata */ }
   const periodCount = metadata.periodCount ?? sport.periods.count;
   const periodName = metadata.periodName ?? sport.periods.name;
 

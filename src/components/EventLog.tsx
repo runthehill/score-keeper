@@ -11,13 +11,14 @@ export default function EventLog({ events, players, gameStartedAt }: Props) {
   const playerMap = new Map(players.map((p) => [p.id, p]));
 
   // Calculate running scores forward, then display most recent first
+  const withScores: { event: GameEvent; home: number; away: number }[] = [];
   let homeRunning = 0;
   let awayRunning = 0;
-  const withScores = events.map((event) => {
+  for (const event of events) {
     if (event.team === 'home') homeRunning += event.points;
     else awayRunning += event.points;
-    return { event, home: homeRunning, away: awayRunning };
-  });
+    withScores.push({ event, home: homeRunning, away: awayRunning });
+  }
 
   const rows = [...withScores].reverse().map(({ event, home, away }) => {
     const player = event.player_id ? playerMap.get(event.player_id) : undefined;
