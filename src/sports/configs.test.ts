@@ -44,13 +44,13 @@ describe('sport configs', () => {
     expect(twoPointer?.label).toBe('Two-Pointer');
   });
 
-  it('gaelic football scoring events carry umpire flag colours', () => {
+  it('gaelic football scoring events carry umpire flag colors', () => {
     const config = getSportConfig('gaelic_football');
-    const colourOf = (type: string) =>
+    const colorOf = (type: string) =>
       config.scoringEvents.find((e) => e.type === type)?.color;
-    expect(colourOf('goal')).toBe('#22c55e'); // green flag
-    expect(colourOf('point')).toBe('#e5e7eb'); // white flag
-    expect(colourOf('two_pointer')).toBe('#f97316'); // orange flag
+    expect(colorOf('goal')).toBe('#22c55e'); // green flag
+    expect(colorOf('point')).toBe('#e5e7eb'); // white flag
+    expect(colorOf('two_pointer')).toBe('#f97316'); // orange flag
   });
 
   it('basketball has stat events for rebounds and steals', () => {

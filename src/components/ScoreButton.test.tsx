@@ -19,21 +19,21 @@ describe('ScoreButton', () => {
     expect(screen.getByText('+2')).toBeInTheDocument();
   });
 
-  it('renders a flag-coloured dot when the event has a colour', () => {
+  it('renders a flag-colored dot when the event has a color', () => {
     render(<ScoreButton event={twoPointer} team="home" onClick={() => {}} />);
     const dot = screen.getByText('●');
     expect(dot).toBeInTheDocument();
     expect(dot).toHaveStyle({ color: '#f97316' });
   });
 
-  it('renders no dot when the event has no colour', () => {
-    const noColour: ScoringEventConfig = {
+  it('renders no dot when the event has no color', () => {
+    const noColor: ScoringEventConfig = {
       type: 'try',
       label: 'Try',
       points: 5,
       icon: '🏉',
     };
-    render(<ScoreButton event={noColour} team="away" onClick={() => {}} />);
+    render(<ScoreButton event={noColor} team="away" onClick={() => {}} />);
     expect(screen.queryByText('●')).not.toBeInTheDocument();
   });
 
