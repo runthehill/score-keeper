@@ -45,7 +45,9 @@ export default function LiveGame() {
         if ('wakeLock' in navigator) {
           wakeLock = await navigator.wakeLock.request('screen');
         }
-      } catch {}
+      } catch {
+        // Wake Lock API unavailable or request denied — non-critical, ignore.
+      }
     }
     requestWakeLock();
     const handleVisibility = () => {

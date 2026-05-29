@@ -1,18 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { SPORTS } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { listGames } from '../db/queries';
-import type { Game } from '../types';
 import SportCard from '../components/SportCard';
 import GameCard from '../components/GameCard';
 
 export default function Home() {
   const { db } = useDB();
-  const [games, setGames] = useState<Game[]>([]);
-
-  useEffect(() => {
-    setGames(listGames(db));
-  }, [db]);
+  const games = useMemo(() => listGames(db), [db]);
 
   const liveGames = games.filter((g) => g.status === 'in_progress');
   const recentGames = games.filter((g) => g.status === 'completed').slice(0, 5);

@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { DBProvider, useDBReady } from './hooks/useDB';
+import { DBProvider } from './hooks/DBProvider';
+import { useDBReady } from './hooks/useDB';
 import TabBar from './components/TabBar';
 import Home from './screens/Home';
 import GameSetup from './screens/GameSetup';

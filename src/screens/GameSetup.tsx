@@ -5,7 +5,7 @@ import type { Sport, Player, Team, GameMetadata, PeriodConfig } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { insertGame, insertPlayer } from '../db/queries';
-import { loadSettings } from './Settings';
+import { loadSettings } from '../utils/settings';
 
 interface DraftPlayer {
   name: string;

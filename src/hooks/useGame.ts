@@ -46,6 +46,11 @@ export function useGame(gameId: string) {
   }, [db, gameId]);
 
   useEffect(() => {
+    // reload() re-syncs React state from the SQLite store on mount and whenever
+    // db/gameId change (e.g. switching games without remounting). This is the
+    // intended "subscribe to an external system" effect — the synchronous setState
+    // inside reload is deliberate (the DB read is synchronous) and must remain.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     reload();
   }, [reload]);
 

@@ -1,15 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Database } from 'sql.js';
 import { getDB, persistDB } from '../db/init';
-
-interface DBContextValue {
-  db: Database | null;
-  ready: boolean;
-  persist: () => Promise<void>;
-}
-
-const DBContext = createContext<DBContextValue>({ db: null, ready: false, persist: async () => {} });
+import { DBContext } from './useDB';
 
 export function DBProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<Database | null>(null);
@@ -31,14 +24,4 @@ export function DBProvider({ children }: { children: ReactNode }) {
       {children}
     </DBContext.Provider>
   );
-}
-
-export function useDB() {
-  const ctx = useContext(DBContext);
-  if (!ctx.ready) throw new Error('Database not ready');
-  return { db: ctx.db!, persist: ctx.persist };
-}
-
-export function useDBReady() {
-  return useContext(DBContext).ready;
 }

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { Game, Sport } from '../types';
+import { useMemo, useState } from 'react';
+import type { Sport } from '../types';
 import { SPORTS } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { listGames } from '../db/queries';
@@ -7,13 +7,11 @@ import GameCard from '../components/GameCard';
 
 export default function History() {
   const { db } = useDB();
-  const [games, setGames] = useState<Game[]>([]);
   const [filter, setFilter] = useState<Sport | 'all'>('all');
-
-  useEffect(() => {
-    const sportFilter = filter === 'all' ? undefined : filter;
-    setGames(listGames(db, sportFilter));
-  }, [db, filter]);
+  const games = useMemo(
+    () => listGames(db, filter === 'all' ? undefined : filter),
+    [db, filter]
+  );
 
   const completedGames = games.filter((g) => g.status === 'completed');
 
