@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2026-05-29
+
+### Added
+- Gaelic Football two-point score — new "Two-Pointer" button (2 points) for scores from outside the 40m arc; folds into the goals–points scoreline (e.g. 1-07) and the running total
+- Umpire flag colours on Gaelic Football score buttons (green = goal, white = point, orange = two-pointer)
+
+## [1.1.2] - 2026-04-03
+
+### Changed
+- Default home team name set to Sligo RFC; updated team-name placeholders in Settings
+
 ## [1.1.1] - 2026-04-03
 
 ### Fixed

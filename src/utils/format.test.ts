@@ -8,20 +8,42 @@ describe('formatScore', () => {
   });
 
   it('formats gaelic split score as goals-points', () => {
-    const events: Pick<GameEvent, 'event_type' | 'team'>[] = [
-      { event_type: 'goal', team: 'home' },
-      { event_type: 'point', team: 'home' },
-      { event_type: 'point', team: 'home' },
-      { event_type: 'point', team: 'home' },
-      { event_type: 'point', team: 'home' },
-      { event_type: 'point', team: 'home' },
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'goal', team: 'home', points: 3 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
     ];
     expect(formatGaelicScore(events, 'home')).toBe('1-05');
   });
 
+  it('counts a two-pointer as 2 in the points figure', () => {
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'goal', team: 'home', points: 3 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'two_pointer', team: 'home', points: 2 },
+    ];
+    expect(formatGaelicScore(events, 'home')).toBe('1-07');
+  });
+
+  it('ignores non-goal events with zero points (cards, subs)', () => {
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'card_black', team: 'home', points: 0 },
+      { event_type: 'substitution_on', team: 'home', points: 0 },
+    ];
+    expect(formatGaelicScore(events, 'home')).toBe('0-01');
+  });
+
   it('pads gaelic points to two digits', () => {
-    const events: Pick<GameEvent, 'event_type' | 'team'>[] = [
-      { event_type: 'point', team: 'home' },
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'point', team: 'home', points: 1 },
     ];
     expect(formatGaelicScore(events, 'home')).toBe('0-01');
   });

@@ -48,8 +48,9 @@ export const SPORTS: SportConfig[] = [
     extraPeriods: [{ type: 'extra_time', label: 'Extra Time' }],
     scoreDisplay: 'split',
     scoringEvents: [
-      { type: 'goal', label: 'Goal', points: 3, icon: '🥅' },
-      { type: 'point', label: 'Point', points: 1, icon: '☝️' },
+      { type: 'goal', label: 'Goal', points: 3, icon: '🥅', color: '#22c55e' },
+      { type: 'point', label: 'Point', points: 1, icon: '☝️', color: '#e5e7eb' },
+      { type: 'two_pointer', label: 'Two-Pointer', points: 2, icon: '🟠', color: '#f97316' },
     ],
     statEvents: [],
     cardEvents: [

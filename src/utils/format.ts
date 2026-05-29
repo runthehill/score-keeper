@@ -1,16 +1,18 @@
 import type { GameEvent, ScoreDisplay, Team } from '../types';
 
-export function formatScore(display: ScoreDisplay, totalPoints: number, events: Pick<GameEvent, 'event_type' | 'team'>[], team?: Team): string {
+export function formatScore(display: ScoreDisplay, totalPoints: number, events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[], team?: Team): string {
   if (display === 'split' && team) {
     return formatGaelicScore(events, team);
   }
   return String(totalPoints);
 }
 
-export function formatGaelicScore(events: Pick<GameEvent, 'event_type' | 'team'>[], team: Team): string {
+export function formatGaelicScore(events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[], team: Team): string {
   const teamEvents = events.filter((e) => e.team === team);
   const goals = teamEvents.filter((e) => e.event_type === 'goal').length;
-  const points = teamEvents.filter((e) => e.event_type === 'point').length;
+  const points = teamEvents
+    .filter((e) => e.event_type !== 'goal')
+    .reduce((sum, e) => sum + e.points, 0);
   return `${goals}-${String(points).padStart(2, '0')}`;
 }
 

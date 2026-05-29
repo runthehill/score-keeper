@@ -42,6 +42,7 @@ export interface ScoringEventConfig {
   label: string;
   points: number;
   icon: string;
+  color?: string;
 }
 
 export interface StatEventConfig {

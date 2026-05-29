@@ -37,8 +37,20 @@ describe('sport configs', () => {
     expect(config.scoreDisplay).toBe('split');
     const goal = config.scoringEvents.find((e) => e.type === 'goal');
     const point = config.scoringEvents.find((e) => e.type === 'point');
+    const twoPointer = config.scoringEvents.find((e) => e.type === 'two_pointer');
     expect(goal?.points).toBe(3);
     expect(point?.points).toBe(1);
+    expect(twoPointer?.points).toBe(2);
+    expect(twoPointer?.label).toBe('Two-Pointer');
+  });
+
+  it('gaelic football scoring events carry umpire flag colors', () => {
+    const config = getSportConfig('gaelic_football');
+    const colorOf = (type: string) =>
+      config.scoringEvents.find((e) => e.type === type)?.color;
+    expect(colorOf('goal')).toBe('#22c55e'); // green flag
+    expect(colorOf('point')).toBe('#e5e7eb'); // white flag
+    expect(colorOf('two_pointer')).toBe('#f97316'); // orange flag
   });
 
   it('basketball has stat events for rebounds and steals', () => {
