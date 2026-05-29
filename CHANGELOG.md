@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.4] - 2026-05-29
+
+### Added
+- Share the current score or final result as a branded image — bold gradient card in Square (1080×1080) or Story (1080×1920) format, shared via the native share sheet with a download fallback. Generated entirely on-device.
+
 ## [1.1.3] - 2026-05-29
 
 ### Added
