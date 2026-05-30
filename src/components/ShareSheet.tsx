@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Game, GameEvent, SportConfig } from '../types';
 import { buildShareModel, type ShareVariant } from '../utils/shareCard';
-import { renderScoreCard, cardToBlob, CARD_SIZES, type ShareFormat } from '../utils/renderScoreCard';
+import { renderScoreCard, cardToBlob, type ShareFormat } from '../utils/renderScoreCard';
 import { shareImage } from '../utils/shareImage';
 import { downloadFile } from '../utils/export';
 
@@ -66,12 +66,10 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
     }
   };
 
-  const isPortrait = CARD_SIZES[format].h > CARD_SIZES[format].w;
-
   return (
     <div className="fixed inset-0 z-50 flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
-      <div className="relative w-full bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[92vh] overflow-y-auto bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
         <p className="text-sm font-semibold text-gray-400 mb-3">
           Share {variant === 'final' ? 'result' : 'current score'}
         </p>
@@ -80,7 +78,7 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
           <canvas
             ref={canvasRef}
             className="rounded-xl border border-surface-600"
-            style={{ height: isPortrait ? '260px' : 'auto', width: isPortrait ? 'auto' : '70%', maxWidth: '70%' }}
+            style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '50vh' }}
           />
         </div>
 
