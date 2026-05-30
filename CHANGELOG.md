@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.13] - 2026-05-30
+
+### Added
+- A Dark / Light mode toggle in Settings (Sideline refresh, Phase 7). The app still follows your device theme by default; the toggle is a manual override that sticks.
+
+### Changed
+- Settings screen restyled to the "Sideline" look. Default squads, default team names, data export/clear, share, and install are unchanged.
+
 ## [1.1.12] - 2026-05-30
 
 ### Changed
