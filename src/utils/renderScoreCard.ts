@@ -34,21 +34,26 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, 
   return { text: t.length < text.length ? `${t}…` : t, size: minSize };
 }
 
-function drawTeam(ctx: CanvasRenderingContext2D, team: ShareTeam, w: number, y: number, dotColor: string, dimmed: boolean, maxNameWidth: number): void {
+function drawTeam(ctx: CanvasRenderingContext2D, team: ShareTeam, w: number, y: number, dotColor: string, dimmed: boolean, maxNameWidth: number, textScale: number): void {
   ctx.save();
   ctx.globalAlpha = dimmed ? 0.82 : 1;
 
+  const scoreSize = w * 0.12 * textScale;
+  const nameSize = w * 0.05 * textScale;
+
   // Name row (optional trophy prefix), auto-fit, with a leading team-colour dot.
+  // Name sits above the anchor and the score below, separated proportionally to
+  // the score size so they never overlap as the text scales.
   const label = `${team.isWinner ? '🏆 ' : ''}${team.name}`;
-  const fitted = fitText(ctx, label, maxNameWidth - w * 0.06, w * 0.05, w * 0.03);
+  const fitted = fitText(ctx, label, maxNameWidth - w * 0.06, nameSize, w * 0.03);
   ctx.font = `800 ${fitted.size}px system-ui, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   const nameWidth = ctx.measureText(fitted.text).width;
-  const dotR = w * 0.013;
-  const gap = w * 0.022;
+  const dotR = w * 0.013 * textScale;
+  const gap = w * 0.022 * textScale;
   const startX = (w - (dotR * 2 + gap + nameWidth)) / 2;
-  const nameY = y - w * 0.05;
+  const nameY = y - scoreSize * 0.5;
 
   ctx.beginPath();
   ctx.fillStyle = dotColor;
@@ -58,11 +63,11 @@ function drawTeam(ctx: CanvasRenderingContext2D, team: ShareTeam, w: number, y: 
   ctx.fillStyle = '#ffffff';
   ctx.fillText(fitted.text, startX + dotR * 2 + gap, nameY);
 
-  // Score (large, centred).
+  // Score (large, centred) below the name.
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
-  ctx.font = `900 ${w * 0.12}px system-ui, sans-serif`;
-  ctx.fillText(team.score, w / 2, y + w * 0.055);
+  ctx.font = `900 ${scoreSize}px system-ui, sans-serif`;
+  ctx.fillText(team.score, w / 2, y + scoreSize * 0.45);
 
   ctx.restore();
 }
@@ -99,12 +104,14 @@ export function renderScoreCard(canvas: HTMLCanvasElement, model: ShareModel, fo
   ctx.fillStyle = model.isLive ? '#fecaca' : '#ffffff';
   ctx.fillText(pillText, w / 2, pillY);
 
-  // Teams (stacked, centred). Loser dimmed only on a decided final.
-  const centerY = h * 0.5;
-  const blockGap = h * (format === 'story' ? 0.18 : 0.19);
+  // Teams (stacked, spread vertically so they aren't bunched in the middle).
+  // Text scales up for the taller story format so names/scores aren't tiny.
   const decided = !model.isLive && !model.isDraw;
-  drawTeam(ctx, model.home, w, centerY - blockGap / 2, HOME_DOT, decided && !model.home.isWinner, w * 0.82);
-  drawTeam(ctx, model.away, w, centerY + blockGap / 2, AWAY_DOT, decided && !model.away.isWinner, w * 0.82);
+  const homeY = h * (format === 'story' ? 0.4 : 0.37);
+  const awayY = h * (format === 'story' ? 0.64 : 0.68);
+  const textScale = format === 'story' ? 1.35 : 1;
+  drawTeam(ctx, model.home, w, homeY, HOME_DOT, decided && !model.home.isWinner, w * 0.82, textScale);
+  drawTeam(ctx, model.away, w, awayY, AWAY_DOT, decided && !model.away.isWinner, w * 0.82, textScale);
 
   // Footer (two lines).
   ctx.globalAlpha = 1;
