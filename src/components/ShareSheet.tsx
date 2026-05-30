@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Game, GameEvent, SportConfig } from '../types';
-import { buildShareModel, type ShareVariant } from '../utils/shareCard';
-import { renderScoreCard, cardToBlob, type ShareFormat } from '../utils/renderScoreCard';
-import { shareImage } from '../utils/shareImage';
-import { downloadFile } from '../utils/export';
+import { buildShareModel, shareFilename, type ShareVariant } from '../utils/shareCard';
+import { exportShareCard } from '../utils/exportShareCard';
+import ShareCard from './ShareCard';
 
 interface Props {
   game: Game;
@@ -15,32 +14,23 @@ interface Props {
 }
 
 export default function ShareSheet({ game, events, sport, variant, periodLabel, onClose }: Props) {
-  const [format, setFormat] = useState<ShareFormat>('square');
+  const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const model = useMemo(
-    () => buildShareModel(game, events, sport, { variant, periodLabel }),
-    [game, events, sport, variant, periodLabel]
-  );
-
-  useEffect(() => {
-    if (canvasRef.current) renderScoreCard(canvasRef.current, model, format);
-  }, [model, format]);
-
-  const filename = `${game.home_team}-v-${game.away_team}.png`.replace(/\s+/g, '-');
+  const model = buildShareModel(game, events, sport, { variant, periodLabel });
+  const filename = shareFilename(game.home_team, game.away_team);
 
   const handleShare = async () => {
-    if (!canvasRef.current) return;
+    if (!cardRef.current) return;
     setBusy(true);
+    setToast('');
     try {
-      const blob = await cardToBlob(canvasRef.current);
-      const outcome = await shareImage(blob, filename, {
+      const outcome = await exportShareCard(cardRef.current, filename, {
         title: `${game.home_team} v ${game.away_team}`,
         text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}`,
       });
-      if (outcome === 'error') setToast("Couldn't share image");
+      if (outcome === 'error') setToast("Couldn't create image");
       else if (outcome === 'downloaded') setToast('Image saved');
       else if (outcome === 'shared') setToast('Shared');
       if (outcome === 'shared' || outcome === 'downloaded') setTimeout(onClose, 800);
@@ -51,62 +41,21 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
     }
   };
 
-  const handleSave = async () => {
-    if (!canvasRef.current) return;
-    setBusy(true);
-    try {
-      const blob = await cardToBlob(canvasRef.current);
-      downloadFile(blob, filename, 'image/png');
-      setToast('Image saved');
-      setTimeout(onClose, 800);
-    } catch {
-      setToast("Couldn't create image");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
-      <div className="relative w-full max-h-[92vh] overflow-y-auto bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
-        <p className="text-sm font-semibold text-gray-400 mb-3">
+      <div className="relative w-full max-h-[92vh] overflow-y-auto bg-surface rounded-t-2xl border-t border-line p-4" onClick={(e) => e.stopPropagation()}>
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-3">
           Share {variant === 'final' ? 'result' : 'current score'}
         </p>
-
-        <div className="flex justify-center mb-4">
-          <canvas
-            ref={canvasRef}
-            className="rounded-xl border border-surface-600"
-            style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '50vh' }}
-          />
+        <div className="mb-4">
+          <ShareCard ref={cardRef} game={game} events={events} sport={sport} variant={variant} periodLabel={periodLabel} />
         </div>
-
-        <div className="flex gap-2 mb-3">
-          {(['square', 'story'] as ShareFormat[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFormat(f)}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold border ${
-                format === f ? 'bg-accent border-accent text-white' : 'bg-surface-700 border-surface-600 text-gray-400'
-              }`}
-            >
-              {f === 'square' ? 'Square' : 'Story'}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex gap-2">
-          <button onClick={handleShare} disabled={busy} className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold disabled:opacity-50">
-            {busy ? '…' : 'Share'}
-          </button>
-          <button onClick={handleSave} disabled={busy} className="flex-1 py-3 bg-surface-700 border border-surface-600 rounded-lg text-sm font-semibold disabled:opacity-50">
-            Save image
-          </button>
-        </div>
-
-        {toast && <p className="text-center text-xs text-gray-400 mt-3">{toast}</p>}
-        <button onClick={onClose} className="w-full mt-2 py-3 text-center text-sm text-gray-500">Close</button>
+        <button type="button" onClick={handleShare} disabled={busy} className="w-full py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-50 press">
+          {busy ? 'Preparing…' : 'Share image'}
+        </button>
+        {toast && <p className="text-center text-xs text-txt-3 mt-3">{toast}</p>}
+        <button type="button" onClick={onClose} className="w-full mt-2 py-3 text-center text-sm text-txt-3">Close</button>
       </div>
     </div>
   );

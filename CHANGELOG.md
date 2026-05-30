@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.12] - 2026-05-30
+
+### Changed
+- Rebuilt the shareable score image (Sideline refresh, Phase 6): it's now a single crisp card in the teams' kit colours (rendered from HTML), replacing the old canvas image and its Square/Story sizes — fixing the earlier proportion issues. The Game Summary screen is restyled with the share card as its centrepiece; period breakdown, player stats, and CSV/JSON export are unchanged.
+
 ## [1.1.11] - 2026-05-30
 
 ### Changed

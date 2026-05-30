@@ -65,3 +65,9 @@ export function buildShareModel(
     appUrl: 'runthehill.github.io/score-keeper',
   };
 }
+
+// Build a download-safe filename from two team names (collapses any run of
+// characters that aren't filesystem-safe — "/", ":", "?", etc. — to a dash).
+export function shareFilename(home: string, away: string): string {
+  return `${home}-v-${away}`.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '.png';
+}
