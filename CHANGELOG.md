@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.11] - 2026-05-30
+
+### Changed
+- Home and History screens restyled to the "Sideline" look (Phase 5): game cards now show each team's kit colours with a live/winner emphasis, sport tiles for starting a new game, a logo header, and a cleaner tab bar. Routing, recent/in-progress lists, and the History sport filter are unchanged.
+
 ## [1.1.10] - 2026-05-30
 
 ### Added
