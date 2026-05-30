@@ -1,3 +1,80 @@
+# Sideline Refresh — Phase 4: Game Setup — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Restyle the Game Setup screen to "Sideline" and wire in the `ColorKitPicker` so each team's kit colours are chosen at setup and saved with the game — preserving the existing squad/player/period logic.
+
+**Architecture:** Add per-sport home kit defaults in `kits.ts`; rewrite `GameSetup.tsx` with kit state + a `ColorKitPicker` sheet + a live `Scoreboard` preview + the Sideline restyle, and pass the four colour fields to `insertGame` (already supported since Phase 2).
+
+**Tech Stack:** Vite + React + TS, Tailwind v3 (Phase-1 tokens), the Phase-2 colour system + Phase-3 `Scoreboard`.
+
+**Spec:** `docs/superpowers/specs/2026-05-30-sideline-refresh-phase4-setup-design.md`. Phase 4 of 7. Visual source: `docs/design-handoff/src/screens.jsx` (`SetupScreen`, `DEFAULT_HOME`).
+
+All commits include: `-m "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"`
+
+---
+
+### Task 1: Per-sport home kit defaults
+
+**Files:** Modify `src/sports/kits.ts`, `src/sports/kits.test.ts`.
+
+- [ ] **Step 1: Add the test** — in `src/sports/kits.test.ts`, add this `describe` block (keep the existing tests). Add `DEFAULT_HOME_KITS` to the import from `./kits`:
+
+```ts
+import { KITS, SWATCHES, DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT, DEFAULT_HOME_KITS } from './kits';
+
+// ... existing tests stay ...
+
+describe('per-sport home kits', () => {
+  it('has a hex kit for every sport', () => {
+    const sports = ['rugby_union', 'soccer', 'gaelic_football', 'basketball'] as const;
+    for (const s of sports) {
+      const kit = DEFAULT_HOME_KITS[s];
+      expect(kit.primary).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(kit.secondary).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+});
+```
+
+- [ ] **Step 2: Run → FAIL** — `npx vitest run src/sports/kits.test.ts` (DEFAULT_HOME_KITS not exported).
+
+- [ ] **Step 3: Implement** — in `src/sports/kits.ts`, add `Sport` to the type import and append the export:
+
+```ts
+import type { Sport } from '../types';
+
+// ... existing Kit/KITS/SWATCHES/DEFAULT_HOME_KIT/DEFAULT_AWAY_KIT stay ...
+
+// Per-sport home kit colours (club identities). Away defaults to DEFAULT_AWAY_KIT.
+export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: string }> = {
+  rugby_union: { primary: '#15171C', secondary: '#E03131' },
+  soccer: { primary: '#1E8E4E', secondary: '#FFFFFF' },
+  gaelic_football: { primary: '#E03131', secondary: '#FFFFFF' },
+  basketball: { primary: '#F25F1F', secondary: '#15171C' },
+};
+```
+(If `kits.ts` has no existing import line, add `import type { Sport } from '../types';` at the top.)
+
+- [ ] **Step 4: Run → PASS** — `npx vitest run src/sports/kits.test.ts`, then `npm run lint` (0). `npm run build` still succeeds (additive export).
+
+- [ ] **Step 5: Commit**
+```bash
+git add src/sports/kits.ts src/sports/kits.test.ts
+git commit -m "feat: add per-sport home kit colour defaults"
+```
+
+---
+
+### Task 2: GameSetup screen — restyle + kit pickers + preview
+
+**Files:** Rewrite `src/screens/GameSetup.tsx`.
+
+Preserve every existing handler (`loadSquad`, `addPlayer`, `removePlayer`, `startGame`, the player editor, the period selector, settings/squad logic). The ONLY additions: kit state, the picker, the preview, the four colour args on `insertGame`, a back button, and the restyle.
+
+- [ ] **Step 1: Replace `src/screens/GameSetup.tsx`** with:
+
+```tsx
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
@@ -145,7 +222,6 @@ export default function GameSetup() {
             />
             {defaultSquad && (
               <button
-                type="button"
                 onClick={() => loadSquad(which)}
                 className="shrink-0 bg-surface-2 border border-line rounded-lg px-2.5 py-1 text-[11px] font-semibold text-txt-2 press"
               >
@@ -199,7 +275,6 @@ export default function GameSetup() {
               return (
                 <button
                   key={opt.name}
-                  type="button"
                   onClick={() => setSelectedPeriod(opt)}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold press ${active ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
                 >
@@ -213,21 +288,19 @@ export default function GameSetup() {
 
       {/* Players (optional) */}
       {!showPlayers ? (
-        <button type="button" onClick={() => setShowPlayers(true)} className="text-sm text-txt-3 underline">
+        <button onClick={() => setShowPlayers(true)} className="text-sm text-txt-3 underline">
           + Add players (optional)
         </button>
       ) : (
         <div className="space-y-4">
           <div className="flex gap-2">
             <button
-              type="button"
               onClick={() => setAddingFor('home')}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'home' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
             >
               {homeTeam || 'Home'}
             </button>
             <button
-              type="button"
               onClick={() => setAddingFor('away')}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'away' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
             >
@@ -252,7 +325,7 @@ export default function GameSetup() {
               className="w-16 shrink-0 bg-surface-2 border border-line rounded-xl px-2 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3"
               onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
             />
-            <button type="button" onClick={addPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">
+            <button onClick={addPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">
               Add
             </button>
           </div>
@@ -271,7 +344,7 @@ export default function GameSetup() {
                         {p.number && <span className="text-txt-3 mr-2">#{p.number}</span>}
                         {p.name}
                       </span>
-                      <button type="button" onClick={() => removePlayer(team, i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>
+                      <button onClick={() => removePlayer(team, i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>
                         ✕
                       </button>
                     </div>
@@ -285,7 +358,6 @@ export default function GameSetup() {
 
       {/* Start */}
       <button
-        type="button"
         onClick={startGame}
         disabled={!homeTeam.trim() || !awayTeam.trim()}
         className="w-full flex items-center justify-center gap-2 bg-txt text-bg rounded-xl py-4 font-bold text-lg disabled:opacity-40 press"
@@ -296,7 +368,7 @@ export default function GameSetup() {
       {/* Kit picker */}
       {picker && (
         <ColorKitPicker
-          team={picker === 'home' ? (homeTeam.trim() || sport.defaultTeamName) : (awayTeam.trim() || 'Opponent')}
+          team={picker === 'home' ? homeTeam || 'Home' : awayTeam || 'Away'}
           value={picker === 'home' ? homeKit : awayKit}
           onChange={(kit) => (picker === 'home' ? setHomeKit(kit) : setAwayKit(kit))}
           onClose={() => setPicker(null)}
@@ -305,3 +377,73 @@ export default function GameSetup() {
     </div>
   );
 }
+```
+
+- [ ] **Step 2: Verify** — `npx vitest run` (all green — no test depends on GameSetup markup), `npm run build` (SUCCESS — confirms the `insertGame` colour wiring + the preview `Game` shape typecheck), `npm run lint` (0 errors).
+
+- [ ] **Step 3: Commit**
+```bash
+git add src/screens/GameSetup.tsx
+git commit -m "feat: restyle Game Setup + wire team kit pickers, preview, per-sport defaults"
+```
+
+---
+
+### Task 3: Stale-token sweep + version + changelog + final verification
+
+**Files:** Modify `package.json`, `package-lock.json`, `CHANGELOG.md`.
+
+- [ ] **Step 1: Grep for leftover legacy tokens** in the setup screen:
+```bash
+grep -rn "text-home\|text-away\|bg-home\|bg-away\|bg-accent\|surface-600\|surface-700\|surface-800\|text-white\|text-gray-\|ring-accent" src/screens/GameSetup.tsx
+```
+Expected: **no matches.** If any remain, replace with the Sideline equivalent and re-verify.
+
+- [ ] **Step 2: Bump version** — `package.json` `1.1.9` → `1.1.10`; `package-lock.json` root + `packages[""]` `1.1.9` → `1.1.10` (do NOT touch dependency versions).
+
+- [ ] **Step 3: Changelog** — in `CHANGELOG.md`, replace:
+```md
+All notable changes to this project will be documented in this file.
+
+## [1.1.9] - 2026-05-30
+```
+with:
+```md
+All notable changes to this project will be documented in this file.
+
+## [1.1.10] - 2026-05-30
+
+### Added
+- Choose each team's kit colours when setting up a game (Sideline refresh, Phase 4): tap a team's colour chip to pick a primary + secondary, with a live scoreboard preview and sensible per-sport home defaults. The chosen colours are saved with the game and shown throughout.
+
+### Changed
+- Game Setup screen restyled to the "Sideline" look. Team names, saved squads, optional players, and game format are unchanged.
+
+## [1.1.9] - 2026-05-30
+```
+
+- [ ] **Step 4: Full verification** — `npx vitest run` (all green), `npm run build` (SUCCESS), `npm run lint` (0 errors).
+
+- [ ] **Step 5: Commit**
+```bash
+git add package.json package-lock.json CHANGELOG.md
+git commit -m "chore: bump version to 1.1.10 + changelog for Game Setup restyle"
+```
+
+---
+
+## Plan self-review
+
+**Spec coverage:**
+- Per-sport home kit defaults → Task 1 ✅
+- Per-team kit pickers wired to `insertGame` colours → Task 2 (`homeKit`/`awayKit` state, `ColorKitPicker`, colour args) ✅
+- Live Scoreboard preview → Task 2 (`previewGame` + `<Scoreboard>`) ✅
+- Sideline restyle + back button → Task 2 ✅
+- Preserve squads/players/periods/settings → Task 2 keeps `loadSquad`/`addPlayer`/`removePlayer`/`startGame`/period selector verbatim ✅
+- Stale-token sweep + version 1.1.10 → Task 3 ✅
+
+**Placeholder scan:** none — the full file is provided; every handler retained.
+
+**Type/name consistency:** `DEFAULT_HOME_KITS[sport.id]` returns `{primary,secondary}` matching `homeKit` state and `ColorKitPicker`'s `value`/`onChange` (`{primary,secondary}`); `insertGame`'s optional colour params match; `previewGame` includes all required `Game` fields; icons `ChevronLeft`/`Whistle`/`Edit` exist in the Phase-1 set; `Scoreboard`/`TeamKitChip`/`ColorKitPicker` default-exported and imported correctly; tokens used all exist (`bg-surface`,`bg-surface-2`,`border-line`,`text-txt`/`-2`/`-3`,`bg-txt`,`text-bg`,`placeholder-txt-3`,`press`). `ColorKitPicker.onChange` returns `{primary,secondary}` (Phase 2) → `setHomeKit`/`setAwayKit` accept it directly.
+
+**Risk note:** `ColorKitPicker`'s `value` prop type is `{ primary, secondary }`; `homeKit`/`awayKit` are exactly that shape (from `DEFAULT_HOME_KITS`/`DEFAULT_AWAY_KIT`), so no adapter needed. The preview `Game` cast is a full literal (no `as`), so TypeScript validates every field.

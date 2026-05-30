@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.10] - 2026-05-30
+
+### Added
+- Choose each team's kit colours when setting up a game (Sideline refresh, Phase 4): tap a team's colour chip to pick a primary + secondary, with a live scoreboard preview and sensible per-sport home defaults. The chosen colours are saved with the game and shown throughout.
+
+### Changed
+- Game Setup screen restyled to the "Sideline" look. Team names, saved squads, optional players, and game format are unchanged.
+
 ## [1.1.9] - 2026-05-30
 
 ### Changed
