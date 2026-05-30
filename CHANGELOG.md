@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.9] - 2026-05-30
+
+### Changed
+- Live game screen restyled to the "Sideline" look (Phase 3): colour-blocked scoreboard in each team's kit colours, stadium-clock timer with live indicator, kit-tinted scoring buttons, a cleaner play-by-play, line-icon actions, and a score-pop animation. No change to scoring, timing, cards, subs, or any game behaviour.
+
 ## [1.1.8] - 2026-05-30
 
 ### Added

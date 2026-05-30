@@ -194,7 +194,7 @@ export default function LiveGame() {
   }, [db, gameId, persist, navigate]);
 
   if (!game || !sport) {
-    return <div className="p-4 text-gray-400">Loading game...</div>;
+    return <div className="p-4 text-txt-3">Loading game...</div>;
   }
 
   // Determine which pending action needs a player picker
