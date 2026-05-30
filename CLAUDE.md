@@ -44,7 +44,7 @@ npx vitest           # Watch mode
 
 - Use `gh` CLI for all GitHub operations (PRs, issues, etc.)
 - Dark theme colors: surface-900 (#0f0f23), surface-800 (#1a1a2e), surface-700 (#16213e)
-- Team colors: home = blue (#3b82f6), away = amber (#f59e0b) — neutral, no good/bad connotation
+- Team colours are **per-game kits** (a primary + secondary, chosen at setup, stored on the game). UI tints use `teamAccent(team, dark)` (theme-aware, in `src/utils/teamColors.ts`); the true kit shows via `TeamKitChip`. (Superseded the old fixed home=blue/away=amber convention in the Sideline refresh.)
 - All DB primary keys are UUIDs, timestamps are ISO 8601
 - TDD: write failing test, implement, verify pass
 - Persist DB to IndexedDB after every write operation
