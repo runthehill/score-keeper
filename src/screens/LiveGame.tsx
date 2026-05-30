@@ -13,6 +13,7 @@ import EventLog from '../components/EventLog';
 import ActionsRow from '../components/ActionsRow';
 import PlayerPicker from '../components/PlayerPicker';
 import SubstitutionFlow from '../components/SubstitutionFlow';
+import ShareSheet from '../components/ShareSheet';
 
 export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -36,6 +37,7 @@ export default function LiveGame() {
   const [showStatTeamPicker, setShowStatTeamPicker] = useState<string | null>(null);
   const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
   const [extraPeriodLabel, setExtraPeriodLabel] = useState<string | null>(null);
+  const [showShare, setShowShare] = useState(false);
 
   // Wake lock — keep screen on while scoring
   useEffect(() => {
@@ -212,6 +214,24 @@ export default function LiveGame() {
 
       {/* Scoreboard */}
       <Scoreboard game={game} events={events} />
+
+      <button
+        onClick={() => setShowShare(true)}
+        className="w-full py-2 text-center text-xs font-semibold text-gray-400 border border-surface-600 rounded-lg active:bg-surface-700"
+      >
+        Share current score
+      </button>
+
+      {showShare && (
+        <ShareSheet
+          game={game}
+          events={events}
+          sport={sport}
+          variant="live"
+          periodLabel={extraPeriodLabel ?? `${periodName} ${currentPeriod}`}
+          onClose={() => setShowShare(false)}
+        />
+      )}
 
       {/* Basketball team fouls */}
       {teamFouls && (
