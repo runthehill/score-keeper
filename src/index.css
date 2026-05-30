@@ -28,6 +28,7 @@
   --txt-3: #8A93A2;
   --danger: #DC2626;
   --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.08);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
