@@ -13,6 +13,10 @@ const game: Game = {
   started_at: '2026-04-02T10:00:00.000Z',
   ended_at: '2026-04-02T11:20:00.000Z',
   notes: '',
+  home_primary: '#15171C',
+  home_secondary: '#FFFFFF',
+  away_primary: '#1E63D6',
+  away_secondary: '#FFFFFF',
 };
 
 const players: Player[] = [

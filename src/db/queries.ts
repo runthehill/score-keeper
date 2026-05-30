@@ -1,5 +1,6 @@
 import type { Database, BindParams } from 'sql.js';
 import type { Game, Player, GameEvent, Sport, Team, PlayerStatus } from '../types';
+import { DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT } from '../sports/kits';
 
 function rowToGame(row: Record<string, unknown>): Game {
   return {
@@ -8,6 +9,8 @@ function rowToGame(row: Record<string, unknown>): Game {
     home_score: row.home_score as number, away_score: row.away_score as number,
     status: row.status as Game['status'], started_at: row.started_at as string,
     ended_at: (row.ended_at as string) || null, notes: (row.notes as string) || '',
+    home_primary: row.home_primary as string, home_secondary: row.home_secondary as string,
+    away_primary: row.away_primary as string, away_secondary: row.away_secondary as string,
   };
 }
 
@@ -36,9 +39,14 @@ function query<T>(db: Database, sql: string, params: BindParams, mapper: (row: R
   return results;
 }
 
-export function insertGame(db: Database, game: { id: string; sport: string; home_team: string; away_team: string; started_at: string; notes?: string }) {
-  db.run('INSERT INTO games (id, sport, home_team, away_team, started_at, notes) VALUES (?, ?, ?, ?, ?, ?)',
-    [game.id, game.sport, game.home_team, game.away_team, game.started_at, game.notes ?? '']);
+export function insertGame(db: Database, game: { id: string; sport: string; home_team: string; away_team: string; started_at: string; notes?: string; home_primary?: string; home_secondary?: string; away_primary?: string; away_secondary?: string }) {
+  db.run(
+    `INSERT INTO games (id, sport, home_team, away_team, started_at, notes, home_primary, home_secondary, away_primary, away_secondary)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [game.id, game.sport, game.home_team, game.away_team, game.started_at, game.notes ?? '',
+      game.home_primary ?? DEFAULT_HOME_KIT.primary, game.home_secondary ?? DEFAULT_HOME_KIT.secondary,
+      game.away_primary ?? DEFAULT_AWAY_KIT.primary, game.away_secondary ?? DEFAULT_AWAY_KIT.secondary]
+  );
 }
 
 export function getGame(db: Database, id: string): Game | undefined {
@@ -56,6 +64,11 @@ export function updateGameScore(db: Database, id: string, homeScore: number, awa
 
 export function endGame(db: Database, id: string, endedAt: string) {
   db.run("UPDATE games SET status = 'completed', ended_at = ? WHERE id = ?", [endedAt, id]);
+}
+
+export function updateGameColors(db: Database, id: string, colors: { home_primary: string; home_secondary: string; away_primary: string; away_secondary: string }) {
+  db.run('UPDATE games SET home_primary = ?, home_secondary = ?, away_primary = ?, away_secondary = ? WHERE id = ?',
+    [colors.home_primary, colors.home_secondary, colors.away_primary, colors.away_secondary, id]);
 }
 
 export function insertPlayer(db: Database, player: Player) {

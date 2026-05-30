@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.8] - 2026-05-30
+
+### Added
+- Per-game team "kit" colours (Sideline refresh, Phase 2): each team gets a primary + secondary colour stored with the game, plus theme-aware colour helpers, the kit presets/swatches, and the kit chip + colour picker. Wired into the screens in later phases.
+
 ## [1.1.7] - 2026-05-30
 
 ### Changed
