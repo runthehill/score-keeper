@@ -2,9 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+.theme-dark {
+  --bg: #0C0E12;
+  --surface: #161A21;
+  --surface-2: #1E232C;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.17);
+  --txt: #F3F5F8;
+  --txt-2: #A7B0BE;
+  --txt-3: #6C7585;
+  --danger: #FF6B6B;
+  --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.40);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-light {
+  --bg: #EDEFF3;
+  --surface: #FFFFFF;
+  --surface-2: #F4F6F9;
+  --line: rgba(15, 23, 42, 0.09);
+  --line-2: rgba(15, 23, 42, 0.18);
+  --txt: #10131A;
+  --txt-2: #515B6B;
+  --txt-3: #8A93A2;
+  --danger: #DC2626;
+  --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
 @layer base {
   body {
-    @apply bg-surface-900 text-white antialiased;
+    @apply font-sans antialiased;
+    background: var(--bg);
+    color: var(--txt);
   }
 
   @media (display-mode: standalone) {
