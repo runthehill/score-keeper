@@ -296,7 +296,7 @@ export default function GameSetup() {
       {/* Kit picker */}
       {picker && (
         <ColorKitPicker
-          team={picker === 'home' ? homeTeam || 'Home' : awayTeam || 'Away'}
+          team={picker === 'home' ? (homeTeam.trim() || sport.defaultTeamName) : (awayTeam.trim() || 'Opponent')}
           value={picker === 'home' ? homeKit : awayKit}
           onChange={(kit) => (picker === 'home' ? setHomeKit(kit) : setAwayKit(kit))}
           onClose={() => setPicker(null)}
