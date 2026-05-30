@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.7] - 2026-05-30
+
+### Changed
+- Foundation for the "Sideline" visual refresh: system-aware dark/light theming (CSS-variable tokens), new Hanken Grotesk + Saira Condensed fonts (self-hosted, offline-ready), motion utilities, and a line-icon set. Existing screens are unchanged; they restyle in later phases.
+
 ## [1.1.6] - 2026-05-30
 
 ### Changed
