@@ -29,7 +29,7 @@ export function formatEventTime(eventTimestamp: string, gameStartTimestamp: stri
 
 export function formatRelativeDay(iso: string): string {
   const then = new Date(iso);
-  const days = Math.round((Date.now() - then.getTime()) / 86400000);
+  const days = Math.floor((Date.now() - then.getTime()) / 86400000);
   if (days <= 0) return 'Today';
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days} days ago`;

@@ -17,6 +17,7 @@ export default function GameCard({ game }: Props) {
   const linkTo = isLive ? `/game/${game.id}` : `/summary/${game.id}`;
   const homeWin = game.home_score > game.away_score;
   const awayWin = game.away_score > game.home_score;
+  const isDraw = !isLive && game.home_score === game.away_score;
 
   const row = (team: Team) => {
     const isHome = team === 'home';
@@ -25,12 +26,13 @@ export default function GameCard({ game }: Props) {
     const primary = isHome ? game.home_primary : game.away_primary;
     const secondary = isHome ? game.home_secondary : game.away_secondary;
     const win = isHome ? homeWin : awayWin;
+    const emphasize = isLive || win || isDraw;
     const accent = teamAccent({ primary, secondary }, dark);
-    const scoreColor = isLive ? accent : win ? 'var(--txt)' : 'var(--txt-3)';
+    const scoreColor = isLive ? accent : win || isDraw ? 'var(--txt)' : 'var(--txt-3)';
     return (
       <div className="flex items-center gap-2.5">
         <TeamKitChip primary={primary} secondary={secondary} size={20} radius={6} />
-        <span className={`flex-1 min-w-0 truncate text-sm ${isLive || win ? 'font-extrabold text-txt' : 'font-semibold text-txt-2'}`}>{name}</span>
+        <span className={`flex-1 min-w-0 truncate text-sm ${emphasize ? 'font-extrabold text-txt' : 'font-semibold text-txt-2'}`}>{name}</span>
         <span className="font-score font-bold text-xl tabular-nums" style={{ color: scoreColor }}>{score}</span>
       </div>
     );

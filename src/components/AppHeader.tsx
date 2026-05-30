@@ -13,8 +13,8 @@ export default function AppHeader({ subtitle }: Props) {
         ))}
       </div>
       <div className="min-w-0">
-        <div className="text-[17px] font-extrabold text-txt -tracking-[0.02em] leading-tight">Jonathan's Score Keeper</div>
-        {subtitle && <div className="text-xs text-txt-3 mt-0.5">{subtitle}</div>}
+        <h1 className="text-[17px] font-extrabold text-txt -tracking-[0.02em] leading-tight">Jonathan's Score Keeper</h1>
+        {subtitle && <p className="text-xs text-txt-3 mt-0.5">{subtitle}</p>}
       </div>
     </div>
   );
