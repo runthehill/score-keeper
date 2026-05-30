@@ -9,6 +9,8 @@ import { downloadFile } from '../utils/export';
 import { clearDB } from '../db/init';
 
 import { loadSettings, saveSettings } from '../utils/settings';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import IosInstallSheet from '../components/IosInstallSheet';
 
 export default function Settings() {
   const { db } = useDB();
@@ -20,6 +22,8 @@ export default function Settings() {
   const [squadPlayers, setSquadPlayers] = useState<DefaultSquadPlayer[]>([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
+  const { mode: installMode, promptInstall } = useInstallPrompt();
+  const [showIosInstall, setShowIosInstall] = useState(false);
 
   useEffect(() => {
     saveSettings(settings);
@@ -195,6 +199,23 @@ export default function Settings() {
           {shareMessage || 'Share this app'}
         </button>
       </section>
+
+      {installMode !== 'hidden' && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Install</h2>
+          <button
+            onClick={() => {
+              if (installMode === 'ios') setShowIosInstall(true);
+              else void promptInstall().catch(() => {});
+            }}
+            className="w-full bg-surface-800 border border-surface-600 rounded-xl py-3 text-sm font-semibold active:bg-surface-700"
+          >
+            {installMode === 'ios' ? 'Add to home screen' : 'Install app'}
+          </button>
+        </section>
+      )}
+
+      {showIosInstall && <IosInstallSheet onClose={() => setShowIosInstall(false)} />}
 
       <div className="text-center pt-4 space-y-1">
         <p className="text-xs text-gray-600">Jonathan's Score Keeper v{APP_VERSION}</p>
