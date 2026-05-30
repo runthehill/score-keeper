@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   resolveInstallMode,
   isBannerDismissed,
   dismissBanner,
   promptInstall,
+  isIOS,
 } from './installPrompt';
 
 describe('resolveInstallMode', () => {
@@ -53,5 +54,21 @@ describe('promptInstall', () => {
   it('returns "dismissed" when the user declines', async () => {
     dispatchBeforeInstallPrompt('dismissed');
     expect(await promptInstall()).toBe('dismissed');
+  });
+});
+
+describe('isIOS', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('detects iPhone', () => {
+    vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari', maxTouchPoints: 5 });
+    expect(isIOS()).toBe(true);
+  });
+  it('detects iPadOS reporting as Macintosh (touch)', () => {
+    vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari', maxTouchPoints: 5 });
+    expect(isIOS()).toBe(true);
+  });
+  it('is false on a real desktop Mac (no touch)', () => {
+    vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari', maxTouchPoints: 0 });
+    expect(isIOS()).toBe(false);
   });
 });

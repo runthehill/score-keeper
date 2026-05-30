@@ -64,7 +64,11 @@ export function isStandalone(): boolean {
 }
 
 export function isIOS(): boolean {
-  return typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  // iPadOS 13+ Safari reports as "Macintosh"; distinguish it from a real Mac by touch support.
+  const iPadOnMac = /macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+  return /iphone|ipad|ipod/i.test(ua) || iPadOnMac;
 }
 
 const DISMISS_KEY = 'sk-install-dismissed';
