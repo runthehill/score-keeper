@@ -38,7 +38,7 @@ export default function History() {
         </div>
       ) : (
         <>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3">All games · {completedGames.length}</p>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3">{filter === 'all' ? 'All games' : SPORTS.find((s) => s.id === filter)?.name} · {completedGames.length}</p>
           <div className="space-y-3">
             {completedGames.map((g) => <GameCard key={g.id} game={g} />)}
           </div>
