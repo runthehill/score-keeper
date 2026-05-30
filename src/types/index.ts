@@ -15,6 +15,10 @@ export interface Game {
   started_at: string;
   ended_at: string | null;
   notes: string;
+  home_primary: string;
+  home_secondary: string;
+  away_primary: string;
+  away_secondary: string;
 }
 
 export interface Player {

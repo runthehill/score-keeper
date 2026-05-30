@@ -8,6 +8,7 @@ function game(overrides: Partial<Game> = {}): Game {
     id: 'g1', sport: 'gaelic_football', home_team: 'Coolera', away_team: 'Tourlestrane',
     home_score: 0, away_score: 0, status: 'completed',
     started_at: '2026-05-29T12:00:00.000Z', ended_at: null, notes: '',
+    home_primary: '#15171C', home_secondary: '#FFFFFF', away_primary: '#1E63D6', away_secondary: '#FFFFFF',
     ...overrides,
   };
 }
