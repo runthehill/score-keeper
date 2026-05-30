@@ -145,6 +145,7 @@ export default function GameSetup() {
             />
             {defaultSquad && (
               <button
+                type="button"
                 onClick={() => loadSquad(which)}
                 className="shrink-0 bg-surface-2 border border-line rounded-lg px-2.5 py-1 text-[11px] font-semibold text-txt-2 press"
               >
@@ -198,6 +199,7 @@ export default function GameSetup() {
               return (
                 <button
                   key={opt.name}
+                  type="button"
                   onClick={() => setSelectedPeriod(opt)}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold press ${active ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
                 >
@@ -211,19 +213,21 @@ export default function GameSetup() {
 
       {/* Players (optional) */}
       {!showPlayers ? (
-        <button onClick={() => setShowPlayers(true)} className="text-sm text-txt-3 underline">
+        <button type="button" onClick={() => setShowPlayers(true)} className="text-sm text-txt-3 underline">
           + Add players (optional)
         </button>
       ) : (
         <div className="space-y-4">
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => setAddingFor('home')}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'home' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
             >
               {homeTeam || 'Home'}
             </button>
             <button
+              type="button"
               onClick={() => setAddingFor('away')}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'away' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
             >
@@ -248,7 +252,7 @@ export default function GameSetup() {
               className="w-16 shrink-0 bg-surface-2 border border-line rounded-xl px-2 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3"
               onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
             />
-            <button onClick={addPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">
+            <button type="button" onClick={addPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">
               Add
             </button>
           </div>
@@ -267,7 +271,7 @@ export default function GameSetup() {
                         {p.number && <span className="text-txt-3 mr-2">#{p.number}</span>}
                         {p.name}
                       </span>
-                      <button onClick={() => removePlayer(team, i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>
+                      <button type="button" onClick={() => removePlayer(team, i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>
                         ✕
                       </button>
                     </div>
@@ -281,6 +285,7 @@ export default function GameSetup() {
 
       {/* Start */}
       <button
+        type="button"
         onClick={startGame}
         disabled={!homeTeam.trim() || !awayTeam.trim()}
         className="w-full flex items-center justify-center gap-2 bg-txt text-bg rounded-xl py-4 font-bold text-lg disabled:opacity-40 press"
