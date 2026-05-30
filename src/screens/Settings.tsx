@@ -1,19 +1,41 @@
 import { useState, useEffect } from 'react';
 import type { Sport, DefaultSquadPlayer } from '../types';
-import { SPORTS, getSportConfig } from '../sports/configs';
+import { SPORTS } from '../sports/configs';
+import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
+import { useThemeContext } from '../hooks/useTheme';
 import { listGames, listEvents, listPlayers } from '../db/queries';
 
 const APP_VERSION = __APP_VERSION__;
 import { downloadFile } from '../utils/export';
 import { clearDB } from '../db/init';
-
 import { loadSettings, saveSettings } from '../utils/settings';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import IosInstallSheet from '../components/IosInstallSheet';
+import AppHeader from '../components/AppHeader';
+
+const EYEBROW = 'text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-2.5';
+const INPUT = 'w-full bg-surface-2 border border-line rounded-xl px-4 py-3 text-txt placeholder-txt-3 focus:outline-none focus:border-txt-3';
+
+function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      className="relative w-[46px] h-7 rounded-full shrink-0 transition-colors"
+      style={{ background: on ? 'var(--txt)' : 'var(--line-2)' }}
+    >
+      <span className="absolute top-[3px] w-[22px] h-[22px] rounded-full transition-all" style={{ left: on ? 21 : 3, background: 'var(--surface)', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+    </button>
+  );
+}
 
 export default function Settings() {
   const { db } = useDB();
+  const { dark, toggle } = useThemeContext();
   const [settings, setSettings] = useState(loadSettings);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
@@ -54,10 +76,7 @@ export default function Settings() {
     if (!editingSport) return;
     setSettings((s) => ({
       ...s,
-      squads: {
-        ...s.squads,
-        [editingSport]: { teamName: squadName.trim(), players: squadPlayers },
-      },
+      squads: { ...s.squads, [editingSport]: { teamName: squadName.trim(), players: squadPlayers } },
     }));
     setEditingSport(null);
   };
@@ -74,13 +93,12 @@ export default function Settings() {
 
   const handleExportAll = () => {
     const games = listGames(db);
-    const allData = games.map((game) => {
-      const events = listEvents(db, game.id);
-      const players = listPlayers(db, game.id);
-      return { game, players, events };
-    });
-    const json = JSON.stringify(allData, null, 2);
-    downloadFile(json, 'score-keeper-all-data.json', 'application/json');
+    const allData = games.map((game) => ({
+      game,
+      players: listPlayers(db, game.id),
+      events: listEvents(db, game.id),
+    }));
+    downloadFile(JSON.stringify(allData, null, 2), 'score-keeper-all-data.json', 'application/json');
   };
 
   const handleClearAll = async () => {
@@ -89,127 +107,99 @@ export default function Settings() {
     window.location.reload();
   };
 
-  const inputClass =
-    'w-full bg-surface-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent';
+  const handleShareApp = async () => {
+    const url = 'https://runthehill.github.io/score-keeper/';
+    const shareData = { title: "Jonathan's Score Keeper", text: 'Keep score at kids sports games — works offline!', url };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareMessage('Link copied!');
+        setTimeout(() => setShareMessage(''), 2000);
+      }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(url);
+        setShareMessage('Link copied!');
+        setTimeout(() => setShareMessage(''), 2000);
+      }
+    }
+  };
+
+  const cardBtn = 'w-full bg-surface-2 border border-line rounded-xl py-3 text-sm font-semibold text-txt-2 press';
 
   return (
     <div className="p-4 space-y-6">
-      <h1 className="text-xl font-bold">Settings</h1>
+      <AppHeader subtitle="Preferences" />
 
-      {/* Default squads per sport */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-          Default Squads
-        </h2>
-        <p className="text-xs text-gray-500">Set up your team and squad for each sport. Load them quickly when starting a game.</p>
+      {/* Appearance */}
+      <section>
+        <h2 className={EYEBROW}>Appearance</h2>
+        <div className="bg-surface border border-line rounded-2xl flex items-center justify-between px-4 py-3.5">
+          <span className="text-sm font-semibold text-txt">Dark mode</span>
+          <Toggle on={dark} onClick={toggle} label="Dark mode" />
+        </div>
+      </section>
+
+      {/* Default squads */}
+      <section>
+        <h2 className={EYEBROW}>Default squads</h2>
+        <p className="text-xs text-txt-3 mb-2.5">Set up your team and squad for each sport. Load them quickly when starting a game.</p>
         <div className="space-y-2">
           {SPORTS.map((sport) => {
             const squad = settings.squads[sport.id];
             return (
-              <button
-                key={sport.id}
-                onClick={() => openSquadEditor(sport.id)}
-                className="w-full bg-surface-800 rounded-xl px-4 py-3 flex items-center justify-between active:bg-surface-700"
-              >
+              <button key={sport.id} type="button" onClick={() => openSquadEditor(sport.id)} className="w-full bg-surface border border-line rounded-2xl px-4 py-3 flex items-center justify-between press">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{sport.icon}</span>
+                  <span className="text-xl" aria-hidden="true">{sport.icon}</span>
                   <div className="text-left">
-                    <p className="text-sm font-semibold">{sport.name}</p>
-                    {squad ? (
-                      <p className="text-xs text-gray-400">{squad.teamName} — {squad.players.length} players</p>
-                    ) : (
-                      <p className="text-xs text-gray-500">No squad set</p>
-                    )}
+                    <p className="text-sm font-semibold text-txt">{sport.name}</p>
+                    <p className="text-xs text-txt-3">{squad ? `${squad.teamName} — ${squad.players.length} players` : 'No squad set'}</p>
                   </div>
                 </div>
-                <span className="text-gray-500 text-sm">{squad ? 'Edit' : '+'}</span>
+                <span className="text-txt-3 text-sm">{squad ? 'Edit' : '+'}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      {/* Legacy default team names */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-          Default Team Names
-        </h2>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Home Team</label>
-          <input
-            type="text"
-            value={settings.defaultHomeTeam}
-            onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))}
-            placeholder="e.g. Sligo All Stars"
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 mb-1 block">Away Team</label>
-          <input
-            type="text"
-            value={settings.defaultAwayTeam}
-            onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))}
-            placeholder="e.g. Limerick Celtics"
-            className={inputClass}
-          />
+      {/* Default team names */}
+      <section>
+        <h2 className={EYEBROW}>Default team names</h2>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-txt-3 mb-1 block">Home team</label>
+            <input type="text" value={settings.defaultHomeTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))} placeholder="e.g. Sligo All Stars" className={INPUT} />
+          </div>
+          <div>
+            <label className="text-xs text-txt-3 mb-1 block">Away team</label>
+            <input type="text" value={settings.defaultAwayTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))} placeholder="e.g. Limerick Celtics" className={INPUT} />
+          </div>
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Data</h2>
-        <button
-          onClick={handleExportAll}
-          className="w-full bg-surface-800 border border-surface-600 rounded-xl py-3 text-sm font-semibold active:bg-surface-700"
-        >
-          Export All Data (JSON)
-        </button>
-        <button
-          onClick={() => setShowClearConfirm(true)}
-          className="w-full bg-surface-800 border border-red-900/50 rounded-xl py-3 text-sm font-semibold text-red-400 active:bg-surface-700"
-        >
-          Clear All Data
-        </button>
+      {/* Data */}
+      <section>
+        <h2 className={EYEBROW}>Data</h2>
+        <div className="space-y-2">
+          <button type="button" onClick={handleExportAll} className={cardBtn}>Export all data (JSON)</button>
+          <button type="button" onClick={() => setShowClearConfirm(true)} className="w-full bg-surface-2 rounded-xl py-3 text-sm font-semibold text-danger press" style={{ boxShadow: 'inset 0 0 0 1px var(--line-2)' }}>Clear all data</button>
+        </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Share</h2>
-        <button
-          onClick={async () => {
-            const url = 'https://runthehill.github.io/score-keeper/';
-            const shareData = { title: "Jonathan's Score Keeper", text: 'Keep score at kids sports games — works offline!', url };
-            try {
-              if (navigator.share) {
-                await navigator.share(shareData);
-              } else {
-                await navigator.clipboard.writeText(url);
-                setShareMessage('Link copied!');
-                setTimeout(() => setShareMessage(''), 2000);
-              }
-            } catch (e) {
-              if ((e as Error).name !== 'AbortError') {
-                await navigator.clipboard.writeText(url);
-                setShareMessage('Link copied!');
-                setTimeout(() => setShareMessage(''), 2000);
-              }
-            }
-          }}
-          className="w-full bg-surface-800 border border-surface-600 rounded-xl py-3 text-sm font-semibold active:bg-surface-700"
-        >
-          {shareMessage || 'Share this app'}
-        </button>
+      {/* Share */}
+      <section>
+        <h2 className={EYEBROW}>Share</h2>
+        <button type="button" onClick={handleShareApp} className={cardBtn}>{shareMessage || 'Share this app'}</button>
       </section>
 
+      {/* Install */}
       {installMode !== 'hidden' && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Install</h2>
-          <button
-            onClick={() => {
-              if (installMode === 'ios') setShowIosInstall(true);
-              else void promptInstall().catch(() => {});
-            }}
-            className="w-full bg-surface-800 border border-surface-600 rounded-xl py-3 text-sm font-semibold active:bg-surface-700"
-          >
+        <section>
+          <h2 className={EYEBROW}>Install</h2>
+          <button type="button" onClick={() => { if (installMode === 'ios') setShowIosInstall(true); else void promptInstall().catch(() => {}); }} className={cardBtn}>
             {installMode === 'ios' ? 'Add to home screen' : 'Install app'}
           </button>
         </section>
@@ -218,103 +208,55 @@ export default function Settings() {
       {showIosInstall && <IosInstallSheet onClose={() => setShowIosInstall(false)} />}
 
       <div className="text-center pt-4 space-y-1">
-        <p className="text-xs text-gray-600">Jonathan's Score Keeper v{APP_VERSION}</p>
-        <a
-          href="https://github.com/runthehill/score-keeper"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-accent underline"
-        >
-          Github
-        </a>
+        <p className="text-xs text-txt-3">Jonathan's Score Keeper v{APP_VERSION}</p>
+        <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">Github</a>
       </div>
 
       {/* Squad editor modal */}
       {editingSport && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setEditingSport(null)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div
-            className="relative w-full bg-surface-800 rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">
-                {SPORTS.find((s) => s.id === editingSport)?.icon}{' '}
-                {SPORTS.find((s) => s.id === editingSport)?.name} Squad
+              <h3 className="text-lg font-extrabold text-txt flex items-center gap-2">
+                <span aria-hidden="true">{getSportConfig(editingSport).icon}</span> {getSportConfig(editingSport).name} squad
               </h3>
               {settings.squads[editingSport] && (
-                <button onClick={deleteSquad} className="text-xs text-red-400">Clear</button>
+                <button type="button" onClick={deleteSquad} className="text-xs text-danger">Clear</button>
               )}
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Team Name</label>
-                <input
-                  type="text"
-                  value={squadName}
-                  onChange={(e) => setSquadName(e.target.value)}
-                  placeholder="e.g. Sligo All Stars"
-                  className={inputClass}
-                />
+                <label className="text-xs text-txt-3 mb-1 block">Team name</label>
+                <input type="text" value={squadName} onChange={(e) => setSquadName(e.target.value)} placeholder="e.g. Sligo All Stars" className={INPUT} />
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Players</label>
+                <label className="text-xs text-txt-3 mb-1 block">Players</label>
                 <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Player name"
-                    className="min-w-0 flex-1 bg-surface-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
-                    onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()}
-                  />
-                  <input
-                    type="number"
-                    value={newNumber}
-                    onChange={(e) => setNewNumber(e.target.value)}
-                    placeholder="#"
-                    className="w-16 shrink-0 bg-surface-700 rounded-lg px-2 py-3 text-white text-center placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent"
-                    onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()}
-                  />
-                  <button onClick={addSquadPlayer} className="shrink-0 bg-accent rounded-lg px-4 font-semibold">
-                    Add
-                  </button>
+                  <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Player name" className={`${INPUT} min-w-0 flex-1`} onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()} />
+                  <input type="number" value={newNumber} onChange={(e) => setNewNumber(e.target.value)} placeholder="#" className="w-16 shrink-0 bg-surface-2 border border-line rounded-xl px-2 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3" onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()} />
+                  <button type="button" onClick={addSquadPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">Add</button>
                 </div>
                 <div className="space-y-1">
                   {squadPlayers.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between bg-surface-700 rounded-lg px-3 py-2">
-                      <span className="text-sm">
-                        {p.number && <span className="text-gray-400 mr-2">#{p.number}</span>}
+                    <div key={i} className="flex items-center justify-between bg-surface-2 border border-line rounded-xl px-3 py-2">
+                      <span className="text-sm text-txt">
+                        {p.number && <span className="text-txt-3 mr-2">#{p.number}</span>}
                         {p.name}
                       </span>
-                      <button onClick={() => removeSquadPlayer(i)} className="text-gray-500 text-xs">
-                        ✕
-                      </button>
+                      <button type="button" onClick={() => removeSquadPlayer(i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>✕</button>
                     </div>
                   ))}
-                  {squadPlayers.length === 0 && (
-                    <p className="text-xs text-gray-500 text-center py-2">No players added yet</p>
-                  )}
+                  {squadPlayers.length === 0 && <p className="text-xs text-txt-3 text-center py-2">No players added yet</p>}
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => setEditingSport(null)}
-                className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveSquad}
-                disabled={!squadName.trim()}
-                className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold disabled:opacity-40"
-              >
-                Save Squad
-              </button>
+              <button type="button" onClick={() => setEditingSport(null)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
+              <button type="button" onClick={saveSquad} disabled={!squadName.trim()} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-40 press">Save squad</button>
             </div>
           </div>
         </div>
@@ -324,24 +266,12 @@ export default function Settings() {
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowClearConfirm(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">Clear All Data?</h3>
-            <p className="text-sm text-gray-400 mb-4">
-              This will permanently delete all games, players, and events. This cannot be undone.
-            </p>
+          <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold mb-2 text-txt">Clear all data?</h3>
+            <p className="text-sm text-txt-3 mb-4">This will permanently delete all games, players, and events. This cannot be undone.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleClearAll}
-                className="flex-1 py-3 bg-red-600 rounded-lg text-sm font-bold"
-              >
-                Delete Everything
-              </button>
+              <button type="button" onClick={() => setShowClearConfirm(false)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
+              <button type="button" onClick={handleClearAll} className="flex-1 py-3 rounded-xl text-sm font-bold text-white press" style={{ background: 'var(--danger)' }}>Delete everything</button>
             </div>
           </div>
         </div>
