@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'sk-theme';
 // Dark is the deliberate default when the OS preference is unknown — it's the
@@ -60,4 +60,17 @@ export function useTheme(): { dark: boolean; toggle: () => void } {
   }, []);
 
   return useMemo(() => ({ dark, toggle }), [dark, toggle]);
+}
+
+export interface ThemeContextValue {
+  dark: boolean;
+  toggle: () => void;
+}
+
+// Context + consumer hook live here (a non-component module) so the provider
+// file can export only the component — satisfies react-refresh/only-export-components.
+export const ThemeContext = createContext<ThemeContextValue>({ dark: true, toggle: () => {} });
+
+export function useThemeContext(): ThemeContextValue {
+  return useContext(ThemeContext);
 }
