@@ -17,8 +17,8 @@ export default defineConfig({
         name: "Jonathan's Score Keeper",
         short_name: 'ScoreKeeper',
         description: 'Keep score at kids sports games',
-        theme_color: '#0f0f23',
-        background_color: '#0f0f23',
+        theme_color: '#0C0E12',
+        background_color: '#0C0E12',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -26,7 +26,7 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,wasm}'] },
+      workbox: { globPatterns: ['**/*.{js,css,html,wasm,woff2}'] },
     }),
   ],
   optimizeDeps: {
