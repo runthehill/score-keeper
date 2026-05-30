@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildShareModel } from './shareCard';
+import { buildShareModel, shareFilename } from './shareCard';
 import { getSportConfig } from '../sports/configs';
 import type { Game, GameEvent } from '../types';
 
@@ -58,5 +58,12 @@ describe('buildShareModel', () => {
     expect(m.home.isWinner).toBe(false);
     expect(m.away.isWinner).toBe(false);
     expect(m.isDraw).toBe(false);
+  });
+});
+
+describe('shareFilename', () => {
+  it('sanitizes filesystem-unsafe characters to dashes', () => {
+    expect(shareFilename('Sligo RFC', 'Ballina/Killala')).toBe('Sligo-RFC-v-Ballina-Killala.png');
+    expect(shareFilename('A: B?', 'C\\D')).toBe('A-B-v-C-D.png');
   });
 });

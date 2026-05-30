@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Game, GameEvent, SportConfig } from '../types';
-import { buildShareModel, type ShareVariant } from '../utils/shareCard';
+import { buildShareModel, shareFilename, type ShareVariant } from '../utils/shareCard';
 import { exportShareCard } from '../utils/exportShareCard';
 import ShareCard from './ShareCard';
 
@@ -19,7 +19,7 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
   const [toast, setToast] = useState('');
 
   const model = buildShareModel(game, events, sport, { variant, periodLabel });
-  const filename = `${game.home_team}-v-${game.away_team}.png`.replace(/\s+/g, '-');
+  const filename = shareFilename(game.home_team, game.away_team);
 
   const handleShare = async () => {
     if (!cardRef.current) return;

@@ -6,7 +6,7 @@ import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
 import { getGame, listEvents, listPlayers } from '../db/queries';
 import { teamAccent } from '../utils/teamColors';
-import { buildShareModel } from '../utils/shareCard';
+import { buildShareModel, shareFilename } from '../utils/shareCard';
 import { exportShareCard } from '../utils/exportShareCard';
 import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
 import ShareCard from '../components/ShareCard';
@@ -59,7 +59,7 @@ export default function GameSummary() {
       const model = buildShareModel(game, events, sport, { variant: 'final' });
       const outcome = await exportShareCard(
         cardRef.current,
-        `${game.home_team}-v-${game.away_team}.png`.replace(/\s+/g, '-'),
+        shareFilename(game.home_team, game.away_team),
         { title: `${game.home_team} v ${game.away_team}`, text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}` }
       );
       setShareState(outcome === 'shared' ? 'Shared' : outcome === 'downloaded' ? 'Image saved' : outcome === 'cancelled' ? '' : "Couldn't create image");
@@ -131,7 +131,7 @@ export default function GameSummary() {
 
       {/* Share */}
       <div>
-        <button type="button" onClick={handleShare} className="w-full flex items-center justify-center gap-2 bg-txt text-bg rounded-xl py-3.5 text-sm font-bold press">
+        <button type="button" onClick={handleShare} disabled={shareState === 'Preparing…'} className="w-full flex items-center justify-center gap-2 bg-txt text-bg rounded-xl py-3.5 text-sm font-bold disabled:opacity-50 press">
           <Share size={16} /> Share result
         </button>
         {shareState && <p className="text-center text-xs text-txt-3 mt-2">{shareState}</p>}

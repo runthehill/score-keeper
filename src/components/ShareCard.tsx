@@ -31,12 +31,14 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
     const secondary = isHome ? game.home_secondary : game.away_secondary;
     const accent = teamAccent({ primary, secondary }, true);
     const highlight = team.isWinner || model.isDraw;
+    const total = isHome ? game.home_score : game.away_score;
     return (
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isHome ? 'flex-start' : 'flex-end' }}>
         <TeamKitChip primary={primary} secondary={secondary} size={34} radius={10} />
         <div className="font-sans" style={{ marginTop: 9, width: '100%', textAlign: isHome ? 'left' : 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 800, fontSize: 13.5, color: '#fff', letterSpacing: '-0.01em' }}>{team.name}</div>
         <div className="font-sans" style={{ marginTop: 2, fontWeight: 700, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>{isHome ? 'Home' : 'Away'}{team.isWinner && !model.isDraw ? ' · Win' : ''}</div>
         <div className="font-score" style={{ marginTop: 8, fontWeight: 700, fontSize: isSplit ? 46 : 62, lineHeight: 0.9, color: highlight ? accent : 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums', letterSpacing: isSplit ? 0 : '-0.02em' }}>{team.score}</div>
+        {isSplit && <div className="font-sans" style={{ marginTop: 4, fontWeight: 600, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{total} pts</div>}
       </div>
     );
   };
