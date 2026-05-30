@@ -1,3 +1,5 @@
+import type { Sport } from '../types';
+
 export interface Kit {
   name: string;
   primary: string;
@@ -25,3 +27,11 @@ export const SWATCHES: string[] = [
 
 export const DEFAULT_HOME_KIT = { primary: '#15171C', secondary: '#FFFFFF' };
 export const DEFAULT_AWAY_KIT = { primary: '#1E63D6', secondary: '#FFFFFF' };
+
+// Per-sport home kit colours (club identities). Away defaults to DEFAULT_AWAY_KIT.
+export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: string }> = {
+  rugby_union: { primary: '#15171C', secondary: '#E03131' },
+  soccer: { primary: '#1E8E4E', secondary: '#FFFFFF' },
+  gaelic_football: { primary: '#16245A', secondary: '#F4C430' },
+  basketball: { primary: '#F25F1F', secondary: '#15171C' },
+};
