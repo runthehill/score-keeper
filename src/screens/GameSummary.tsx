@@ -55,13 +55,17 @@ export default function GameSummary() {
   const handleShare = async () => {
     if (!cardRef.current) return;
     setShareState('Preparing…');
-    const model = buildShareModel(game, events, sport, { variant: 'final' });
-    const outcome = await exportShareCard(
-      cardRef.current,
-      `${game.home_team}-v-${game.away_team}.png`.replace(/\s+/g, '-'),
-      { title: `${game.home_team} v ${game.away_team}`, text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}` }
-    );
-    setShareState(outcome === 'shared' ? 'Shared' : outcome === 'downloaded' ? 'Image saved' : outcome === 'cancelled' ? '' : "Couldn't create image");
+    try {
+      const model = buildShareModel(game, events, sport, { variant: 'final' });
+      const outcome = await exportShareCard(
+        cardRef.current,
+        `${game.home_team}-v-${game.away_team}.png`.replace(/\s+/g, '-'),
+        { title: `${game.home_team} v ${game.away_team}`, text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}` }
+      );
+      setShareState(outcome === 'shared' ? 'Shared' : outcome === 'downloaded' ? 'Image saved' : outcome === 'cancelled' ? '' : "Couldn't create image");
+    } catch {
+      setShareState("Couldn't create image");
+    }
   };
 
   const handleExportCSV = () => downloadFile(exportGameCSV(game, events, players), `${game.home_team}-vs-${game.away_team}.csv`, 'text/csv');

@@ -25,15 +25,20 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
     if (!cardRef.current) return;
     setBusy(true);
     setToast('');
-    const outcome = await exportShareCard(cardRef.current, filename, {
-      title: `${game.home_team} v ${game.away_team}`,
-      text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}`,
-    });
-    setBusy(false);
-    if (outcome === 'error') setToast("Couldn't create image");
-    else if (outcome === 'downloaded') setToast('Image saved');
-    else if (outcome === 'shared') setToast('Shared');
-    if (outcome === 'shared' || outcome === 'downloaded') setTimeout(onClose, 800);
+    try {
+      const outcome = await exportShareCard(cardRef.current, filename, {
+        title: `${game.home_team} v ${game.away_team}`,
+        text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}`,
+      });
+      if (outcome === 'error') setToast("Couldn't create image");
+      else if (outcome === 'downloaded') setToast('Image saved');
+      else if (outcome === 'shared') setToast('Shared');
+      if (outcome === 'shared' || outcome === 'downloaded') setTimeout(onClose, 800);
+    } catch {
+      setToast("Couldn't create image");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
