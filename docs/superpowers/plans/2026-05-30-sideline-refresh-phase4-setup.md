@@ -50,7 +50,7 @@ import type { Sport } from '../types';
 export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: string }> = {
   rugby_union: { primary: '#15171C', secondary: '#E03131' },
   soccer: { primary: '#1E8E4E', secondary: '#FFFFFF' },
-  gaelic_football: { primary: '#16245A', secondary: '#F4C430' },
+  gaelic_football: { primary: '#E03131', secondary: '#FFFFFF' },
   basketball: { primary: '#F25F1F', secondary: '#15171C' },
 };
 ```

@@ -18,7 +18,7 @@ The current `GameSetup` has logic the prototype lacks — **keep all of it**, ju
 - Only **additions**: kit state + picker + preview, the four colour args on the `insertGame` call, and the restyle.
 
 ## Decisions (flag for review)
-1. **Per-sport home kit colours** (from the handoff `DEFAULT_HOME`): rugby `#15171C`/`#E03131`, soccer `#1E8E4E`/`#FFFFFF`, gaelic `#16245A`/`#F4C430`, basketball `#F25F1F`/`#15171C`. Away = `#1E63D6`/`#FFFFFF` (Royal). These pair with the existing per-sport `defaultTeamName`s. Stored as colour-only (`{primary, secondary}`) keyed by sport in `kits.ts` (names stay settings-driven).
+1. **Per-sport home kit colours** (from the handoff `DEFAULT_HOME`, with real club colours where known): rugby `#15171C`/`#E03131`, soccer `#1E8E4E`/`#FFFFFF`, gaelic `#E03131`/`#FFFFFF` (Coolera Strandhill are red/white — the handoff's navy/gold was wrong), basketball `#F25F1F`/`#15171C`. Away = `#1E63D6`/`#FFFFFF` (Royal). These pair with the existing per-sport `defaultTeamName`s. Stored as colour-only (`{primary, secondary}`) keyed by sport in `kits.ts` (names stay settings-driven).
 2. **Live preview** uses the Phase-3 `Scoreboard` with a synthetic preview `Game` (0–0). Reused, not reimplemented.
 3. **Back button** added to the header (`ChevronLeft` → `navigate(-1)`), matching the handoff `SubHeader`. (The screen had no back affordance before; this is a small UX win and reversible.)
 4. The kit state seeds from the defaults on mount; if the user has a saved default home team name in settings, the **name** still wins (colours are independent of name here — a club-colour map per name is out of scope; revisit in Settings/P7 if wanted).
@@ -32,7 +32,7 @@ import type { Sport } from '../types';  // add to imports
 export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: string }> = {
   rugby_union: { primary: '#15171C', secondary: '#E03131' },
   soccer: { primary: '#1E8E4E', secondary: '#FFFFFF' },
-  gaelic_football: { primary: '#16245A', secondary: '#F4C430' },
+  gaelic_football: { primary: '#E03131', secondary: '#FFFFFF' },
   basketball: { primary: '#F25F1F', secondary: '#15171C' },
 };
 ```
