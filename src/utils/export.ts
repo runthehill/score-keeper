@@ -31,8 +31,8 @@ export function exportGameJSON(game: Game, events: GameEvent[], players: Player[
   return JSON.stringify({ game, players, events }, null, 2);
 }
 
-export function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
+export function downloadFile(content: string | Blob, filename: string, mimeType: string) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

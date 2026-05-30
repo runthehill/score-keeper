@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - "Install" prompt — a dismissible banner on the Home screen and an entry in Settings to add the app to your home screen. Triggers the native install dialog on Android/desktop and shows Add-to-Home-Screen instructions on iOS.
 
+## [1.1.4] - 2026-05-29
+
+### Added
+- Share the current score or final result as a branded image — bold gradient card in Square (1080×1080) or Story (1080×1920) format, shared via the native share sheet with a download fallback. Generated entirely on-device.
+
 ## [1.1.3] - 2026-05-29
 
 ### Added
