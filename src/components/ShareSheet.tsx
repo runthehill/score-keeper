@@ -40,7 +40,7 @@ export default function ShareSheet({ game, events, sport, variant, periodLabel, 
         title: `${game.home_team} v ${game.away_team}`,
         text: `${model.home.name} ${model.home.score} – ${model.away.name} ${model.away.score}`,
       });
-      if (outcome === 'error') setToast("Couldn't create image");
+      if (outcome === 'error') setToast("Couldn't share image");
       else if (outcome === 'downloaded') setToast('Image saved');
       else if (outcome === 'shared') setToast('Shared');
       if (outcome === 'shared' || outcome === 'downloaded') setTimeout(onClose, 800);
