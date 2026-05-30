@@ -20,6 +20,7 @@ export default function Timer({ seconds, running, onToggle, periodLabel }: Props
   return (
     <button
       onClick={onToggle}
+      aria-label={running ? 'Pause timer' : 'Start timer'}
       className="w-full flex items-center justify-center gap-3.5 bg-surface-2 border border-line rounded-2xl py-2.5 px-4 text-txt press"
     >
       <span
