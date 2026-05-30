@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatScore, formatGaelicScore, formatTimer, formatEventTime } from './format';
+import { formatScore, formatGaelicScore, formatTimer, formatEventTime, formatRelativeDay } from './format';
 import type { GameEvent } from '../types';
 
 describe('formatScore', () => {
@@ -72,5 +72,21 @@ describe('formatEventTime', () => {
     const start = '2026-04-02T10:00:00.000Z';
     const event = '2026-04-02T10:32:15.000Z';
     expect(formatEventTime(event, start)).toBe("32:15");
+  });
+});
+
+describe('formatRelativeDay', () => {
+  it('returns Today for now', () => {
+    expect(formatRelativeDay(new Date().toISOString())).toBe('Today');
+  });
+  it('returns Yesterday for ~1 day ago', () => {
+    expect(formatRelativeDay(new Date(Date.now() - (86400000 + 2 * 3600000)).toISOString())).toBe('Yesterday');
+  });
+  it('returns "N days ago" within a week', () => {
+    expect(formatRelativeDay(new Date(Date.now() - (3 * 86400000 + 2 * 3600000)).toISOString())).toBe('3 days ago');
+  });
+  it('returns a dated string beyond a week', () => {
+    const out = formatRelativeDay(new Date(Date.now() - 40 * 86400000).toISOString());
+    expect(out).toMatch(/\d{4}/);
   });
 });
