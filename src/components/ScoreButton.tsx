@@ -1,31 +1,21 @@
 import type { ScoringEventConfig } from '../types';
+import { inkOn, rgba } from '../utils/teamColors';
 
 interface Props {
   event: ScoringEventConfig;
-  team: 'home' | 'away';
+  accent: string;
   onClick: () => void;
 }
 
-export default function ScoreButton({ event, team, onClick }: Props) {
-  const isHome = team === 'home';
+export default function ScoreButton({ event, accent, onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 rounded-lg py-3 px-2 text-center border transition-transform active:scale-95 ${
-        isHome
-          ? 'bg-home-dark border-home text-white'
-          : 'bg-away-dark border-away text-white'
-      }`}
+      className="relative flex-1 flex flex-col items-center gap-0.5 rounded-[15px] px-2 pt-3 pb-2.5 press-score"
+      style={{ background: accent, color: inkOn(accent), boxShadow: `0 5px 14px ${rgba(accent, 0.3)}` }}
     >
-      <div className="text-sm font-bold">
-        {event.color && (
-          <span className="mr-1" style={{ color: event.color }} aria-hidden="true">
-            ●
-          </span>
-        )}
-        {event.label}
-      </div>
-      <div className={`text-xs ${isHome ? 'text-home' : 'text-away'}`}>+{event.points}</div>
+      <span className="font-score font-bold text-[26px] leading-none">+{event.points}</span>
+      <span className="text-[11.5px] font-bold">{event.label}</span>
     </button>
   );
 }

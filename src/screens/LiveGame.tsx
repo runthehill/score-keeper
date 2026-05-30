@@ -14,6 +14,7 @@ import ActionsRow from '../components/ActionsRow';
 import PlayerPicker from '../components/PlayerPicker';
 import SubstitutionFlow from '../components/SubstitutionFlow';
 import ShareSheet from '../components/ShareSheet';
+import TeamKitChip from '../components/TeamKitChip';
 
 export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -38,6 +39,7 @@ export default function LiveGame() {
   const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
   const [extraPeriodLabel, setExtraPeriodLabel] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
+  const [flash, setFlash] = useState<Team | null>(null);
 
   // Wake lock — keep screen on while scoring
   useEffect(() => {
@@ -85,15 +87,21 @@ export default function LiveGame() {
     };
   }, [sport, events, currentPeriod]);
 
+  const triggerFlash = useCallback((team: Team) => {
+    setFlash(team);
+    setTimeout(() => setFlash((f) => (f === team ? null : f)), 450);
+  }, []);
+
   const handleScore = useCallback(
     (team: Team, eventType: string, points: number) => {
+      if (points > 0) triggerFlash(team);
       if (teamHasPlayers(team)) {
         setPendingScore({ team, eventType, points });
       } else {
         addEvent(team, eventType, points);
       }
     },
-    [teamHasPlayers, addEvent]
+    [teamHasPlayers, addEvent, triggerFlash]
   );
 
   const handlePlayerSelected = useCallback(
@@ -186,7 +194,7 @@ export default function LiveGame() {
   }, [db, gameId, persist, navigate]);
 
   if (!game || !sport) {
-    return <div className="p-4 text-gray-400">Loading game...</div>;
+    return <div className="p-4 text-txt-3">Loading game...</div>;
   }
 
   // Determine which pending action needs a player picker
@@ -202,22 +210,20 @@ export default function LiveGame() {
     <div className="p-3 space-y-3 pb-8">
       {/* Sport badge + period */}
       <div className="flex items-center justify-between">
-        <span className="bg-accent px-3 py-1 rounded-full text-xs font-semibold">
-          {sport.name.toUpperCase()}
+        <span className="bg-surface-2 border border-line text-txt-2 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-[0.06em]">
+          {sport.name}
         </span>
-        <span className="text-xs text-gray-400">
-          {extraPeriodLabel
-            ? extraPeriodLabel
-            : `${periodName} ${currentPeriod} of ${periodCount}`}
+        <span className="text-xs text-txt-3">
+          {extraPeriodLabel ? extraPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
         </span>
       </div>
 
       {/* Scoreboard */}
-      <Scoreboard game={game} events={events} />
+      <Scoreboard game={game} events={events} flash={flash} />
 
       <button
         onClick={() => setShowShare(true)}
-        className="w-full py-2 text-center text-xs font-semibold text-gray-400 border border-surface-600 rounded-lg active:bg-surface-700"
+        className="w-full py-2 text-center text-xs font-semibold text-txt-3 border border-line rounded-xl press"
       >
         Share current score
       </button>
@@ -236,35 +242,50 @@ export default function LiveGame() {
       {/* Basketball team fouls */}
       {teamFouls && (
         <div className="flex justify-between px-4 text-xs">
-          <span className={`font-semibold ${teamFouls.home >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+          <span className={`font-semibold ${teamFouls.home >= 5 ? 'text-danger' : 'text-txt-3'}`}>
             Team Fouls: {teamFouls.home}{teamFouls.home >= 5 ? ' BONUS' : ''}
           </span>
-          <span className={`font-semibold ${teamFouls.away >= 5 ? 'text-red-400' : 'text-gray-400'}`}>
+          <span className={`font-semibold ${teamFouls.away >= 5 ? 'text-danger' : 'text-txt-3'}`}>
             Team Fouls: {teamFouls.away}{teamFouls.away >= 5 ? ' BONUS' : ''}
           </span>
         </div>
       )}
 
       {/* Timer */}
-      <Timer seconds={timer.seconds} running={timer.running} onToggle={timer.toggle} />
+      <Timer
+        seconds={timer.seconds}
+        running={timer.running}
+        onToggle={timer.toggle}
+        periodLabel={extraPeriodLabel ?? `${periodName} ${currentPeriod}`}
+      />
 
-      {/* Home scoring buttons */}
+      {/* Home scoring */}
       <ScoringRow
         events={sport.scoringEvents}
         team="home"
         teamName={game.home_team}
+        primary={game.home_primary}
+        secondary={game.home_secondary}
+        score={game.home_score}
+        isSplit={sport.scoreDisplay === 'split'}
+        gameEvents={events}
         onScore={(type, pts) => handleScore('home', type, pts)}
       />
 
-      {/* Away scoring buttons */}
+      {/* Away scoring */}
       <ScoringRow
         events={sport.scoringEvents}
         team="away"
         teamName={game.away_team}
+        primary={game.away_primary}
+        secondary={game.away_secondary}
+        score={game.away_score}
+        isSplit={sport.scoreDisplay === 'split'}
+        gameEvents={events}
         onScore={(type, pts) => handleScore('away', type, pts)}
       />
 
-      {/* Actions row */}
+      {/* Actions */}
       <ActionsRow
         sport={sport}
         hasPlayers={hasAnyPlayers}
@@ -280,21 +301,17 @@ export default function LiveGame() {
       />
 
       {/* Event log */}
-      <EventLog
-        events={events}
-        players={players}
-        gameStartedAt={game.started_at}
-      />
+      <EventLog events={events} players={players} game={game} gameStartedAt={game.started_at} />
 
-      {/* End game button */}
+      {/* End game */}
       <button
         onClick={() => setShowEndOptions(true)}
-        className="w-full py-3 text-center text-sm text-gray-500 border border-surface-600 rounded-lg"
+        className="w-full py-3 text-center text-sm text-txt-3 border border-line rounded-xl press"
       >
         End Game
       </button>
 
-      {/* Player picker for scoring, stats, and cards */}
+      {/* Player picker (unchanged) */}
       {pendingAction && pendingTeam && teamHasPlayers(pendingTeam) && (
         <PlayerPicker
           players={players.filter((p) => p.team === pendingTeam)}
@@ -305,7 +322,7 @@ export default function LiveGame() {
         />
       )}
 
-      {/* Substitution flow */}
+      {/* Substitution (unchanged) */}
       {showSub && (
         <SubstitutionFlow
           homePlayers={homePlayers}
@@ -317,31 +334,33 @@ export default function LiveGame() {
         />
       )}
 
-      {/* Card picker — pick card type + team, then player */}
+      {/* Card picker */}
       {showCardPicker && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowCardPicker(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative w-full bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
-            <p className="text-sm font-semibold text-gray-400 mb-3">Issue Card</p>
+          <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4" onClick={(e) => e.stopPropagation()}>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-3">Issue Card</p>
             <div className="space-y-2">
               {sport.cardEvents.map((card) => (
                 <div key={card.type} className="flex gap-2">
                   <button
                     onClick={() => handleCardTeamSelected('home', card.type)}
-                    className="flex-1 bg-home-dark border border-home rounded-lg py-3 text-sm font-medium"
+                    className="flex-1 flex items-center gap-2 bg-surface-2 border border-line rounded-xl py-3 px-3 text-sm font-semibold text-txt press"
                   >
-                    <span style={{ color: card.color }}>●</span> {card.label} — {game.home_team}
+                    <TeamKitChip primary={game.home_primary} secondary={game.home_secondary} size={18} radius={5} />
+                    <span style={{ color: card.color }} aria-hidden="true">●</span> {card.label} — {game.home_team}
                   </button>
                   <button
                     onClick={() => handleCardTeamSelected('away', card.type)}
-                    className="flex-1 bg-away-dark border border-away rounded-lg py-3 text-sm font-medium"
+                    className="flex-1 flex items-center gap-2 bg-surface-2 border border-line rounded-xl py-3 px-3 text-sm font-semibold text-txt press"
                   >
-                    <span style={{ color: card.color }}>●</span> {card.label} — {game.away_team}
+                    <TeamKitChip primary={game.away_primary} secondary={game.away_secondary} size={18} radius={5} />
+                    <span style={{ color: card.color }} aria-hidden="true">●</span> {card.label} — {game.away_team}
                   </button>
                 </div>
               ))}
             </div>
-            <button onClick={() => setShowCardPicker(false)} className="w-full mt-3 py-3 text-center text-sm text-gray-500">
+            <button onClick={() => setShowCardPicker(false)} className="w-full mt-3 py-3 text-center text-sm text-txt-3">
               Cancel
             </button>
           </div>
@@ -352,92 +371,71 @@ export default function LiveGame() {
       {showStatTeamPicker && (
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setShowStatTeamPicker(null)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative w-full bg-surface-800 rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
-            <p className="text-sm font-semibold text-gray-400 mb-3">Which team?</p>
+          <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4" onClick={(e) => e.stopPropagation()}>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-3">Which team?</p>
             <div className="space-y-2">
               <button
                 onClick={() => handleStatTeamSelected('home', showStatTeamPicker)}
-                className="w-full bg-home-dark border border-home rounded-lg py-3 font-semibold text-home active:opacity-80"
+                className="w-full flex items-center gap-2.5 bg-surface-2 border border-line rounded-xl py-3 px-3 font-semibold text-txt press"
               >
+                <TeamKitChip primary={game.home_primary} secondary={game.home_secondary} size={20} radius={6} />
                 {game.home_team}
               </button>
               <button
                 onClick={() => handleStatTeamSelected('away', showStatTeamPicker)}
-                className="w-full bg-away-dark border border-away rounded-lg py-3 font-semibold text-away active:opacity-80"
+                className="w-full flex items-center gap-2.5 bg-surface-2 border border-line rounded-xl py-3 px-3 font-semibold text-txt press"
               >
+                <TeamKitChip primary={game.away_primary} secondary={game.away_secondary} size={20} radius={6} />
                 {game.away_team}
               </button>
             </div>
-            <button onClick={() => setShowStatTeamPicker(null)} className="w-full mt-3 py-3 text-center text-sm text-gray-500">
+            <button onClick={() => setShowStatTeamPicker(null)} className="w-full mt-3 py-3 text-center text-sm text-txt-3">
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* Period advance confirmation */}
+      {/* Period advance confirm */}
       {showPeriodConfirm && sport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowPeriodConfirm(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">Start {periodName} {currentPeriod + 1}?</h3>
-            <p className="text-sm text-gray-400 mb-4">
-              The timer will reset to 00:00.
-            </p>
+          <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold mb-2 text-txt">Start {periodName} {currentPeriod + 1}?</h3>
+            <p className="text-sm text-txt-3 mb-4">The timer will reset to 00:00.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowPeriodConfirm(false)}
-                className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAdvancePeriod}
-                className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold"
-              >
-                Next {periodName}
-              </button>
+              <button onClick={() => setShowPeriodConfirm(false)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
+              <button onClick={confirmAdvancePeriod} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold press">Next {periodName}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* End of regulation options — End Game / Extra Time / Overtime / Penalties */}
+      {/* End-of-regulation options */}
       {showEndOptions && sport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowEndOptions(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-1">
+          <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold mb-1 text-txt">
               {isExtraPeriod ? `End of ${extraPeriodLabel}` : `End of ${periodName} ${currentPeriod}`}
             </h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-txt-3 mb-4">
               {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
             </p>
             <div className="space-y-2">
               {sport.extraPeriods.map((ep) => (
                 <button
                   key={ep.type}
-                  onClick={() => {
-                    setShowEndOptions(false);
-                    setExtraPeriodLabel(ep.label);
-                    advancePeriod();
-                    timer.reset();
-                  }}
-                  className="w-full py-3 bg-surface-700 rounded-lg text-sm font-semibold active:bg-surface-600"
+                  onClick={() => { setShowEndOptions(false); setExtraPeriodLabel(ep.label); advancePeriod(); timer.reset(); }}
+                  className="w-full py-3 bg-surface-2 border border-line rounded-xl text-sm font-semibold text-txt press"
                 >
                   {ep.label}
                 </button>
               ))}
-              <button
-                onClick={() => { setShowEndOptions(false); setShowEndConfirm(true); }}
-                className="w-full py-3 bg-accent rounded-lg text-sm font-bold"
-              >
+              <button onClick={() => { setShowEndOptions(false); setShowEndConfirm(true); }} className="w-full py-3 bg-txt text-bg rounded-xl text-sm font-bold press">
                 End Game
               </button>
-              <button
-                onClick={() => setShowEndOptions(false)}
-                className="w-full py-3 text-center text-sm text-gray-500"
-              >
+              <button onClick={() => setShowEndOptions(false)} className="w-full py-3 text-center text-sm text-txt-3">
                 Continue Playing
               </button>
             </div>
@@ -445,28 +443,18 @@ export default function LiveGame() {
         </div>
       )}
 
-      {/* End game final confirmation */}
+      {/* End-game confirm */}
       {showEndConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowEndConfirm(false)}>
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative bg-surface-800 rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">End Game?</h3>
-            <p className="text-sm text-gray-400 mb-4">
+          <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold mb-2 text-txt">End Game?</h3>
+            <p className="text-sm text-txt-3 mb-4">
               Final score: {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowEndConfirm(false)}
-                className="flex-1 py-3 border border-surface-600 rounded-lg text-sm font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleEndGame}
-                className="flex-1 py-3 bg-accent rounded-lg text-sm font-bold"
-              >
-                End Game
-              </button>
+              <button onClick={() => setShowEndConfirm(false)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
+              <button onClick={handleEndGame} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold press">End Game</button>
             </div>
           </div>
         </div>

@@ -4,44 +4,15 @@ import userEvent from '@testing-library/user-event';
 import ScoreButton from './ScoreButton';
 import type { ScoringEventConfig } from '../types';
 
-const twoPointer: ScoringEventConfig = {
-  type: 'two_pointer',
-  label: 'Two-Pointer',
-  points: 2,
-  icon: '🟠',
-  color: '#f97316',
-};
+const event: ScoringEventConfig = { type: 'try', label: 'Try', points: 5, icon: '🏉' };
 
 describe('ScoreButton', () => {
-  it('renders the label and points', () => {
-    render(<ScoreButton event={twoPointer} team="home" onClick={() => {}} />);
-    expect(screen.getByText('Two-Pointer')).toBeInTheDocument();
-    expect(screen.getByText('+2')).toBeInTheDocument();
-  });
-
-  it('renders a flag-colored dot when the event has a color', () => {
-    render(<ScoreButton event={twoPointer} team="home" onClick={() => {}} />);
-    const dot = screen.getByText('●');
-    expect(dot).toBeInTheDocument();
-    expect(dot).toHaveStyle({ color: '#f97316' });
-  });
-
-  it('renders no dot when the event has no color', () => {
-    const noColor: ScoringEventConfig = {
-      type: 'try',
-      label: 'Try',
-      points: 5,
-      icon: '🏉',
-    };
-    render(<ScoreButton event={noColor} team="away" onClick={() => {}} />);
-    expect(screen.queryByText('●')).not.toBeInTheDocument();
-  });
-
-  it('calls onClick when pressed', async () => {
-    const user = userEvent.setup();
+  it('renders the label and +points and fires onClick', async () => {
     const onClick = vi.fn();
-    render(<ScoreButton event={twoPointer} team="home" onClick={onClick} />);
-    await user.click(screen.getByRole('button'));
-    expect(onClick).toHaveBeenCalledOnce();
+    render(<ScoreButton event={event} accent="#1E63D6" onClick={onClick} />);
+    expect(screen.getByText('Try')).toBeInTheDocument();
+    expect(screen.getByText('+5')).toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole('button'));
+    expect(onClick).toHaveBeenCalled();
   });
 });
