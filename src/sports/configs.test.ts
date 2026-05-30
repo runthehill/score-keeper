@@ -53,6 +53,11 @@ describe('sport configs', () => {
     expect(colorOf('two_pointer')).toBe('#f97316'); // orange flag
   });
 
+  it('orders gaelic football scoring buttons point, two-pointer, goal', () => {
+    const config = getSportConfig('gaelic_football');
+    expect(config.scoringEvents.map((e) => e.type)).toEqual(['point', 'two_pointer', 'goal']);
+  });
+
   it('basketball has stat events for rebounds and steals', () => {
     const config = getSportConfig('basketball');
     expect(config.statEvents.find((e) => e.type === 'rebound')).toBeDefined();

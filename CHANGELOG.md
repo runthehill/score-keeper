@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.6] - 2026-05-30
+
+### Changed
+- Gaelic Football scoring buttons reordered to Point, 2-Pointer, Goal (ascending by value).
+
 ## [1.1.5] - 2026-05-30
 
 ### Added
