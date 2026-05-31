@@ -329,6 +329,10 @@ export default function LiveGame() {
           awayPlayers={awayPlayers}
           homeTeamName={game.home_team}
           awayTeamName={game.away_team}
+          homePrimary={game.home_primary}
+          homeSecondary={game.home_secondary}
+          awayPrimary={game.away_primary}
+          awaySecondary={game.away_secondary}
           onSubstitute={substitute}
           onClose={() => setShowSub(false)}
         />
