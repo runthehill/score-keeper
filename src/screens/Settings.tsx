@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Sport, DefaultSquadPlayer } from '../types';
-import { SPORTS } from '../sports/configs';
-import { getSportConfig } from '../sports/configs';
+import { SPORTS, getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
 import { listGames, listEvents, listPlayers } from '../db/queries';
@@ -170,12 +169,12 @@ export default function Settings() {
         <h2 className={EYEBROW}>Default team names</h2>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-txt-3 mb-1 block">Home team</label>
-            <input type="text" value={settings.defaultHomeTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))} placeholder="e.g. Sligo All Stars" className={INPUT} />
+            <label htmlFor="default-home-team" className="text-xs text-txt-3 mb-1 block">Home team</label>
+            <input id="default-home-team" type="text" value={settings.defaultHomeTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))} placeholder="e.g. Sligo All Stars" className={INPUT} />
           </div>
           <div>
-            <label className="text-xs text-txt-3 mb-1 block">Away team</label>
-            <input type="text" value={settings.defaultAwayTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))} placeholder="e.g. Limerick Celtics" className={INPUT} />
+            <label htmlFor="default-away-team" className="text-xs text-txt-3 mb-1 block">Away team</label>
+            <input id="default-away-team" type="text" value={settings.defaultAwayTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))} placeholder="e.g. Limerick Celtics" className={INPUT} />
           </div>
         </div>
       </section>
@@ -209,7 +208,7 @@ export default function Settings() {
 
       <div className="text-center pt-4 space-y-1">
         <p className="text-xs text-txt-3">Jonathan's Score Keeper v{APP_VERSION}</p>
-        <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">Github</a>
+        <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">GitHub</a>
       </div>
 
       {/* Squad editor modal */}
@@ -228,8 +227,8 @@ export default function Settings() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-txt-3 mb-1 block">Team name</label>
-                <input type="text" value={squadName} onChange={(e) => setSquadName(e.target.value)} placeholder="e.g. Sligo All Stars" className={INPUT} />
+                <label htmlFor="squad-team-name" className="text-xs text-txt-3 mb-1 block">Team name</label>
+                <input id="squad-team-name" type="text" value={squadName} onChange={(e) => setSquadName(e.target.value)} placeholder="e.g. Sligo All Stars" className={INPUT} />
               </div>
 
               <div>

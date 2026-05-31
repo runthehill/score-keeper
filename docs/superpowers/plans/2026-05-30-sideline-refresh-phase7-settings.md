@@ -234,7 +234,7 @@ export default function Settings() {
 
       <div className="text-center pt-4 space-y-1">
         <p className="text-xs text-txt-3">Jonathan's Score Keeper v{APP_VERSION}</p>
-        <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">Github</a>
+        <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">GitHub</a>
       </div>
 
       {/* Squad editor modal */}
