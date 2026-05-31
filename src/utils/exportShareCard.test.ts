@@ -25,6 +25,7 @@ describe('exportShareCard', () => {
     const outcome = await exportShareCard(node, 'game.png', { title: 'T', text: 'X' });
 
     expect(mockToPng).toHaveBeenCalledWith(node, expect.objectContaining({ backgroundColor: '#0A0C10' }));
+    expect(mockToPng).toHaveBeenCalledTimes(2); // warm-up render + the real one
     expect(mockShareImage).toHaveBeenCalledWith(pngBlob, 'game.png', { title: 'T', text: 'X' });
     expect(outcome).toBe('shared');
   });
