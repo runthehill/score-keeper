@@ -63,6 +63,7 @@ export default function Settings() {
     setSquadName(squad?.teamName ?? sportConfig.defaultTeamName);
     setSquadPlayers(squad?.players ? [...squad.players] : []);
     setSquadKitColors(squadKit(squad, sportId));
+    setShowKitPicker(false);
     setNewName('');
     setNewNumber('');
   };
