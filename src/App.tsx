@@ -16,14 +16,14 @@ function AppRoutes() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-900">
-        <p className="text-gray-400">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <p className="text-txt-3">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-surface-900 ${hideTabBar ? '' : 'pb-20'}`}>
+    <div className={`min-h-screen bg-bg ${hideTabBar ? '' : 'pb-20'}`}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/setup/:sportId" element={<GameSetup />} />

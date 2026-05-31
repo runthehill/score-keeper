@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.14] - 2026-05-31
+
+### Fixed
+- Light mode now applies to the whole app — the screen background follows the selected theme instead of staying dark (so the toggle added in 1.1.13 takes full effect).
+
+### Changed
+- Brought the last surfaces onto the "Sideline" design (refresh polish): the player picker, the substitution flow (now with team kit chips), the install prompts, and the app shell. The whole app is now on the new look.
+
 ## [1.1.13] - 2026-05-30
 
 ### Added

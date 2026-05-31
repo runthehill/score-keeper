@@ -24,21 +24,23 @@ export default function InstallBanner() {
 
   return (
     <>
-      <div className="bg-surface-800 border border-accent/40 rounded-xl p-4 flex items-center gap-3">
+      <div className="bg-surface border border-line rounded-2xl p-4 flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm">📲 Install Score Keeper</p>
-          <p className="text-xs text-gray-400 mt-0.5">Add it to your home screen for one-tap, offline access.</p>
+          <p className="font-semibold text-sm text-txt">📲 Install Score Keeper</p>
+          <p className="text-xs text-txt-3 mt-0.5">Add it to your home screen for one-tap, offline access.</p>
         </div>
         <button
+          type="button"
           onClick={handleInstall}
-          className="flex-shrink-0 bg-accent text-white text-sm font-bold rounded-lg px-4 py-2"
+          className="flex-shrink-0 bg-txt text-bg text-sm font-bold rounded-xl px-4 py-2 press"
         >
           Install
         </button>
         <button
+          type="button"
           onClick={handleDismiss}
           aria-label="Dismiss"
-          className="flex-shrink-0 text-gray-500 text-lg leading-none px-1"
+          className="flex-shrink-0 text-txt-3 text-lg leading-none px-1"
         >
           ✕
         </button>
