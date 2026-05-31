@@ -1,4 +1,4 @@
-import type { Sport } from '../types';
+import type { Sport, DefaultSquad } from '../types';
 
 export interface Kit {
   name: string;
@@ -35,3 +35,11 @@ export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: stri
   gaelic_football: { primary: '#E03131', secondary: '#FFFFFF' },
   basketball: { primary: '#F25F1F', secondary: '#15171C' },
 };
+
+// The kit to use for a saved squad: its own colours when set, else the sport's club default.
+export function squadKit(squad: DefaultSquad | undefined, sportId: Sport): { primary: string; secondary: string } {
+  if (squad?.primary && squad?.secondary) {
+    return { primary: squad.primary, secondary: squad.secondary };
+  }
+  return DEFAULT_HOME_KITS[sportId];
+}

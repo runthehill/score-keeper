@@ -69,6 +69,8 @@ export interface DefaultSquadPlayer {
 export interface DefaultSquad {
   teamName: string;
   players: DefaultSquadPlayer[];
+  primary?: string;
+  secondary?: string;
 }
 
 export interface PeriodConfig {

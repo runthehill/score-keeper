@@ -1,4 +1,4 @@
-import type { Sport, DefaultSquadPlayer } from '../types';
+import type { Sport, DefaultSquad } from '../types';
 
 export const SETTINGS_KEY = 'score-keeper-settings';
 
@@ -6,7 +6,7 @@ export interface AppSettings {
   defaultHomeTeam: string;
   defaultAwayTeam: string;
   darkMode: boolean;
-  squads: Partial<Record<Sport, { teamName: string; players: DefaultSquadPlayer[] }>>;
+  squads: Partial<Record<Sport, DefaultSquad>>;
 }
 
 export function loadSettings(): AppSettings {
