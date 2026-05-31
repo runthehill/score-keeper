@@ -12,6 +12,10 @@ import { loadSettings, saveSettings } from '../utils/settings';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import IosInstallSheet from '../components/IosInstallSheet';
 import AppHeader from '../components/AppHeader';
+import { squadKit } from '../sports/kits';
+import ColorKitPicker from '../components/ColorKitPicker';
+import TeamKitChip from '../components/TeamKitChip';
+import { Edit } from '../components/icons';
 
 const EYEBROW = 'text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-2.5';
 const INPUT = 'w-full bg-surface-2 border border-line rounded-xl px-4 py-3 text-txt placeholder-txt-3 focus:outline-none focus:border-txt-3';
@@ -43,6 +47,8 @@ export default function Settings() {
   const [squadPlayers, setSquadPlayers] = useState<DefaultSquadPlayer[]>([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
+  const [squadKitColors, setSquadKitColors] = useState({ primary: '#15171C', secondary: '#FFFFFF' });
+  const [showKitPicker, setShowKitPicker] = useState(false);
   const { mode: installMode, promptInstall } = useInstallPrompt();
   const [showIosInstall, setShowIosInstall] = useState(false);
 
@@ -56,6 +62,7 @@ export default function Settings() {
     setEditingSport(sportId);
     setSquadName(squad?.teamName ?? sportConfig.defaultTeamName);
     setSquadPlayers(squad?.players ? [...squad.players] : []);
+    setSquadKitColors(squadKit(squad, sportId));
     setNewName('');
     setNewNumber('');
   };
@@ -75,7 +82,7 @@ export default function Settings() {
     if (!editingSport) return;
     setSettings((s) => ({
       ...s,
-      squads: { ...s.squads, [editingSport]: { teamName: squadName.trim(), players: squadPlayers } },
+      squads: { ...s.squads, [editingSport]: { teamName: squadName.trim(), players: squadPlayers, primary: squadKitColors.primary, secondary: squadKitColors.secondary } },
     }));
     setEditingSport(null);
   };
@@ -148,10 +155,12 @@ export default function Settings() {
         <div className="space-y-2">
           {SPORTS.map((sport) => {
             const squad = settings.squads[sport.id];
+            const kit = squadKit(squad, sport.id);
             return (
               <button key={sport.id} type="button" onClick={() => openSquadEditor(sport.id)} className="w-full bg-surface border border-line rounded-2xl px-4 py-3 flex items-center justify-between press">
                 <div className="flex items-center gap-3">
                   <span className="text-xl" aria-hidden="true">{sport.icon}</span>
+                  <TeamKitChip primary={kit.primary} secondary={kit.secondary} size={18} radius={5} />
                   <div className="text-left">
                     <p className="text-sm font-semibold text-txt">{sport.name}</p>
                     <p className="text-xs text-txt-3">{squad ? `${squad.teamName} — ${squad.players.length} players` : 'No squad set'}</p>
@@ -213,6 +222,7 @@ export default function Settings() {
 
       {/* Squad editor modal */}
       {editingSport && (
+        <>
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setEditingSport(null)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -226,6 +236,21 @@ export default function Settings() {
             </div>
 
             <div className="space-y-3">
+              <div>
+                <label className="text-xs text-txt-3 mb-1 block">Kit colours</label>
+                <button
+                  type="button"
+                  onClick={() => setShowKitPicker(true)}
+                  aria-label="Choose squad kit"
+                  className="relative inline-block press"
+                >
+                  <TeamKitChip primary={squadKitColors.primary} secondary={squadKitColors.secondary} size={42} radius={12} />
+                  <span className="absolute -right-1 -bottom-1 w-[18px] h-[18px] rounded-full bg-txt text-bg grid place-items-center">
+                    <Edit size={11} />
+                  </span>
+                </button>
+              </div>
+
               <div>
                 <label htmlFor="squad-team-name" className="text-xs text-txt-3 mb-1 block">Team name</label>
                 <input id="squad-team-name" type="text" value={squadName} onChange={(e) => setSquadName(e.target.value)} placeholder="e.g. Sligo All Stars" className={INPUT} />
@@ -259,6 +284,15 @@ export default function Settings() {
             </div>
           </div>
         </div>
+        {showKitPicker && (
+          <ColorKitPicker
+            team={squadName || getSportConfig(editingSport).name}
+            value={squadKitColors}
+            onChange={(kit) => setSquadKitColors(kit)}
+            onClose={() => setShowKitPicker(false)}
+          />
+        )}
+        </>
       )}
 
       {/* Clear data confirmation */}
