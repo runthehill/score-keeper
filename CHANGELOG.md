@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.15] - 2026-05-31
+
+### Added
+- Set a default squad's team kit colours in Settings (tap the colour chip in the squad editor). When you load that squad in Game Setup, its colours come with it — falling back to the sport's default kit for squads saved before this.
+
 ## [1.1.14] - 2026-05-31
 
 ### Fixed

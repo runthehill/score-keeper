@@ -6,7 +6,7 @@ import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { insertGame, insertPlayer } from '../db/queries';
 import { loadSettings } from '../utils/settings';
-import { DEFAULT_HOME_KITS, DEFAULT_AWAY_KIT } from '../sports/kits';
+import { DEFAULT_HOME_KITS, DEFAULT_AWAY_KIT, squadKit } from '../sports/kits';
 import Scoreboard from '../components/Scoreboard';
 import TeamKitChip from '../components/TeamKitChip';
 import ColorKitPicker from '../components/ColorKitPicker';
@@ -41,12 +41,15 @@ export default function GameSetup() {
 
   const loadSquad = (team: Team) => {
     if (!defaultSquad) return;
+    const kit = squadKit(defaultSquad, sport.id);
     if (team === 'home') {
       setHomeTeam(defaultSquad.teamName);
       setHomePlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
+      setHomeKit(kit);
     } else {
       setAwayTeam(defaultSquad.teamName);
       setAwayPlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
+      setAwayKit(kit);
     }
     setShowPlayers(true);
   };

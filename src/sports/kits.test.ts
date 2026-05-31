@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { KITS, SWATCHES, DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT, DEFAULT_HOME_KITS } from './kits';
+import { KITS, SWATCHES, DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT, DEFAULT_HOME_KITS, squadKit } from './kits';
+import type { DefaultSquad } from '../types';
 
 describe('kits', () => {
   it('has 10 named kits, each with hex primary + secondary', () => {
@@ -27,5 +28,16 @@ describe('per-sport home kits', () => {
       expect(kit.primary).toMatch(/^#[0-9A-Fa-f]{6}$/);
       expect(kit.secondary).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
+  });
+});
+
+describe('squadKit', () => {
+  it('returns the squad colours when both are set', () => {
+    const squad: DefaultSquad = { teamName: 'X', players: [], primary: '#111111', secondary: '#222222' };
+    expect(squadKit(squad, 'soccer')).toEqual({ primary: '#111111', secondary: '#222222' });
+  });
+  it('falls back to the sport default when colours are missing or the squad is undefined', () => {
+    expect(squadKit({ teamName: 'X', players: [] }, 'rugby_union')).toEqual(DEFAULT_HOME_KITS.rugby_union);
+    expect(squadKit(undefined, 'soccer')).toEqual(DEFAULT_HOME_KITS.soccer);
   });
 });
