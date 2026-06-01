@@ -15,4 +15,12 @@ describe('ScoreButton', () => {
     await userEvent.setup().click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalled();
   });
+
+  it('renders a 0-point event as a label-only tally (no +N)', () => {
+    const wide: ScoringEventConfig = { type: 'wide', label: 'Wide', points: 0, icon: '🚩' };
+    const onClick = vi.fn();
+    render(<ScoreButton event={wide} accent="#1E63D6" onClick={onClick} />);
+    expect(screen.getByText('Wide')).toBeInTheDocument();
+    expect(screen.queryByText('+0')).not.toBeInTheDocument();
+  });
 });
