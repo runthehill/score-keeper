@@ -32,9 +32,9 @@ export default function ActionsRow({
   return (
     <div className="space-y-2">
       {sport.statEvents.length > 0 && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {sport.statEvents.map((stat) => (
-            <button key={stat.type} onClick={() => onStat(stat.type)} className={btnClass}>
+            <button key={stat.type} type="button" onClick={() => onStat(stat.type)} className={`${btnClass} min-w-[30%]`}>
               {stat.label}
             </button>
           ))}

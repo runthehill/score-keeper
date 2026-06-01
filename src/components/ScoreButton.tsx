@@ -8,8 +8,23 @@ interface Props {
 }
 
 export default function ScoreButton({ event, accent, onClick }: Props) {
+  // 0-point events (e.g. a Gaelic wide) are tallies, not scores — a de-emphasised
+  // outline button with just the label, alongside the filled scoring buttons.
+  if (event.points === 0) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="relative flex-1 flex items-center justify-center rounded-[15px] px-2 py-3 press-score text-txt-2"
+        style={{ boxShadow: 'inset 0 0 0 1px var(--line-2)' }}
+      >
+        <span className="text-[13px] font-bold">{event.label}</span>
+      </button>
+    );
+  }
   return (
     <button
+      type="button"
       onClick={onClick}
       className="relative flex-1 flex flex-col items-center gap-0.5 rounded-[15px] px-2 pt-3 pb-2.5 press-score"
       style={{ background: accent, color: inkOn(accent), boxShadow: `0 5px 14px ${rgba(accent, 0.3)}` }}

@@ -33,7 +33,13 @@ export const SPORTS: SportConfig[] = [
     ],
     scoreDisplay: 'single',
     scoringEvents: [{ type: 'goal', label: 'Goal', points: 1, icon: '⚽' }],
-    statEvents: [{ type: 'assist', label: 'Assist', icon: '👟' }],
+    statEvents: [
+      { type: 'assist', label: 'Assist', icon: '👟' },
+      { type: 'throw_in', label: 'Throw-in', icon: '🤾' },
+      { type: 'corner', label: 'Corner', icon: '🚩' },
+      { type: 'offside', label: 'Off-side', icon: '🚫' },
+      { type: 'penalty', label: 'Penalty', icon: '🎯' },
+    ],
     cardEvents: [
       { type: 'card_yellow', label: 'Yellow Card', color: '#facc15' },
       { type: 'card_red', label: 'Red Card', color: '#ef4444' },
@@ -51,8 +57,9 @@ export const SPORTS: SportConfig[] = [
       { type: 'point', label: 'Point', points: 1, icon: '☝️', color: '#e5e7eb' },
       { type: 'two_pointer', label: 'Two-Pointer', points: 2, icon: '🟠', color: '#f97316' },
       { type: 'goal', label: 'Goal', points: 3, icon: '🥅', color: '#22c55e' },
+      { type: 'wide', label: 'Wide', points: 0, icon: '🚩' },
     ],
-    statEvents: [],
+    statEvents: [{ type: 'penalty', label: 'Penalty', icon: '🎯' }],
     cardEvents: [
       { type: 'card_yellow', label: 'Yellow Card', color: '#facc15' },
       { type: 'card_black', label: 'Black Card', color: '#1a1a2e' },

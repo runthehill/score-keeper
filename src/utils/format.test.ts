@@ -90,3 +90,12 @@ describe('formatRelativeDay', () => {
     expect(out).toMatch(/\d{4}/);
   });
 });
+
+describe('formatGaelicScore', () => {
+  const ev = (event_type: string, points: number) => ({ event_type, team: 'home' as const, points });
+  it('shows goals-points and is unaffected by a wide (0 pts)', () => {
+    const base = [ev('goal', 3), ev('point', 1), ev('two_pointer', 2)];
+    expect(formatGaelicScore(base, 'home')).toBe('1-03');
+    expect(formatGaelicScore([...base, ev('wide', 0)], 'home')).toBe('1-03');
+  });
+});
