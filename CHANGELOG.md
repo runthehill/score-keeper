@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.18] - 2026-06-01
+
+### Added
+- Gaelic Football: a **Wide** button alongside the scoring buttons (tracked per team/player, doesn't change the score), and a **Penalty** stat.
+- Soccer: **Throw-in**, **Corner**, **Off-side**, and **Penalty** stats alongside Assist.
+- New stats appear in the play-by-play and the game summary's player stats.
+
 ## [1.1.17] - 2026-06-01
 
 ### Fixed
