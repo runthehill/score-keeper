@@ -206,7 +206,7 @@ export default function Settings() {
         <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">GitHub</a>
       </div>
 
-      {/* Squad editor modal */}
+      {/* Team editor modal (state/handlers keep the internal `squad` naming) */}
       {editingSport && (
         <>
         <div className="fixed inset-0 z-50 flex items-end" onClick={() => setEditingSport(null)}>
@@ -227,7 +227,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => setShowKitPicker(true)}
-                  aria-label="Choose squad kit"
+                  aria-label="Choose team kit"
                   className="relative inline-block press"
                 >
                   <TeamKitChip primary={squadKitColors.primary} secondary={squadKitColors.secondary} size={42} radius={12} />
