@@ -1,9 +1,12 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Game, Team } from '../types';
 import { getSportConfig } from '../sports/configs';
+import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
+import { listEvents } from '../db/queries';
 import { teamAccent } from '../utils/teamColors';
-import { formatRelativeDay } from '../utils/format';
+import { formatRelativeDay, formatGaelicScore } from '../utils/format';
 import TeamKitChip from './TeamKitChip';
 
 interface Props {
@@ -12,12 +15,17 @@ interface Props {
 
 export default function GameCard({ game }: Props) {
   const sport = getSportConfig(game.sport);
+  const { db } = useDB();
   const { dark } = useThemeContext();
   const isLive = game.status === 'in_progress';
+  const isSplit = sport.scoreDisplay === 'split';
   const linkTo = isLive ? `/game/${game.id}` : `/summary/${game.id}`;
   const homeWin = game.home_score > game.away_score;
   const awayWin = game.away_score > game.home_score;
   const isDraw = !isLive && game.home_score === game.away_score;
+
+  // Split sports (Gaelic) show goals-points (e.g. "1-05"), derived from the events.
+  const events = useMemo(() => (isSplit ? listEvents(db, game.id) : []), [db, game.id, isSplit]);
 
   const row = (team: Team) => {
     const isHome = team === 'home';
@@ -29,11 +37,12 @@ export default function GameCard({ game }: Props) {
     const emphasize = isLive || win || isDraw;
     const accent = teamAccent({ primary, secondary }, dark);
     const scoreColor = isLive ? accent : win || isDraw ? 'var(--txt)' : 'var(--txt-3)';
+    const scoreText = isSplit ? formatGaelicScore(events, team) : String(score);
     return (
       <div className="flex items-center gap-2.5">
         <TeamKitChip primary={primary} secondary={secondary} size={20} radius={6} />
         <span className={`flex-1 min-w-0 truncate text-sm ${emphasize ? 'font-extrabold text-txt' : 'font-semibold text-txt-2'}`}>{name}</span>
-        <span className="font-score font-bold text-xl tabular-nums" style={{ color: scoreColor }}>{score}</span>
+        <span className="font-score font-bold text-xl tabular-nums" style={{ color: scoreColor }}>{scoreText}</span>
       </div>
     );
   };
