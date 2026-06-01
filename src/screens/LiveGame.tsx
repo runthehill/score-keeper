@@ -201,7 +201,7 @@ export default function LiveGame() {
   const pendingAction = pendingScore || pendingStatTeam || pendingCard;
   const pendingTeam = pendingScore?.team ?? pendingStatTeam?.team ?? pendingCard?.team;
   const pendingTitle = pendingScore
-    ? `Who scored the ${pendingScore.eventType.replace(/_/g, ' ')}?`
+    ? `${pendingScore.points > 0 ? 'Who scored' : 'Who hit'} the ${pendingScore.eventType.replace(/_/g, ' ')}?`
     : pendingCard
       ? `Who received the card?`
       : 'Which player?';
