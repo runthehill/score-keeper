@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.19] - 2026-06-01
+
+### Fixed
+- The game summary's "By half/quarter" breakdown now shows the Gaelic Football goals-points score per period (e.g. "1-03"), matching the rest of the app — it previously showed the raw points total.
+
 ## [1.1.18] - 2026-06-01
 
 ### Added

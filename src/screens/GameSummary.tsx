@@ -6,6 +6,7 @@ import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
 import { getGame, listEvents, listPlayers } from '../db/queries';
 import { teamAccent } from '../utils/teamColors';
+import { formatGaelicScore } from '../utils/format';
 import { buildShareModel, shareFilename } from '../utils/shareCard';
 import { exportShareCard } from '../utils/exportShareCard';
 import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
@@ -36,11 +37,17 @@ export default function GameSummary() {
   const periodCount = metadata.periodCount ?? sport.periods.count;
   const periodName = metadata.periodName ?? sport.periods.name;
 
+  const isSplit = sport.scoreDisplay === 'split';
   const maxPeriod = events.length > 0 ? Math.max(...events.map((e) => e.half_or_period)) : periodCount;
   const periodScores = Array.from({ length: maxPeriod }, (_, i) => {
     const periodEvents = events.filter((e) => e.half_or_period === i + 1);
-    const home = periodEvents.filter((e) => e.team === 'home').reduce((s, e) => s + e.points, 0);
-    const away = periodEvents.filter((e) => e.team === 'away').reduce((s, e) => s + e.points, 0);
+    // Gaelic shows goals-points per period (e.g. "1-03"); other sports show the points total.
+    const home = isSplit
+      ? formatGaelicScore(periodEvents, 'home')
+      : periodEvents.filter((e) => e.team === 'home').reduce((s, e) => s + e.points, 0);
+    const away = isSplit
+      ? formatGaelicScore(periodEvents, 'away')
+      : periodEvents.filter((e) => e.team === 'away').reduce((s, e) => s + e.points, 0);
     return { period: i + 1, home, away };
   });
 
