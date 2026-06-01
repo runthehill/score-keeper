@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.17] - 2026-06-01
+
+### Fixed
+- Gaelic Football games now show the goals-points score (e.g. "1-05") on the Home and History cards, matching the live game and result/share views — previously the cards showed the raw points total.
+
 ## [1.1.16] - 2026-05-31
 
 ### Fixed
