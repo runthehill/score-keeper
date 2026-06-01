@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.16] - 2026-05-31
+
+### Fixed
+- The shared result image no longer crops the bottom (the "Score Keeper" footer / result line). The score font could fall back to a taller font on the first capture, pushing the footer past the edge; the card now waits for its fonts and warms up the render so the full card is captured.
+
 ## [1.1.15] - 2026-05-31
 
 ### Added
