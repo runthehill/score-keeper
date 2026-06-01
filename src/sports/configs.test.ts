@@ -53,9 +53,9 @@ describe('sport configs', () => {
     expect(colorOf('two_pointer')).toBe('#f97316'); // orange flag
   });
 
-  it('orders gaelic football scoring buttons point, two-pointer, goal', () => {
+  it('orders gaelic football scoring buttons point, two-pointer, goal, wide', () => {
     const config = getSportConfig('gaelic_football');
-    expect(config.scoringEvents.map((e) => e.type)).toEqual(['point', 'two_pointer', 'goal']);
+    expect(config.scoringEvents.map((e) => e.type)).toEqual(['point', 'two_pointer', 'goal', 'wide']);
   });
 
   it('basketball has stat events for rebounds and steals', () => {
@@ -69,10 +69,10 @@ describe('sport configs', () => {
     expect(config.cardEvents.find((e) => e.type === 'card_black')).toBeDefined();
   });
 
-  it('all scoring events have positive points', () => {
+  it('all scoring events have non-negative points', () => {
     for (const sport of SPORTS) {
       for (const event of sport.scoringEvents) {
-        expect(event.points, `${sport.id}.${event.type}`).toBeGreaterThan(0);
+        expect(event.points, `${sport.id}.${event.type}`).toBeGreaterThanOrEqual(0);
       }
     }
   });
@@ -100,5 +100,22 @@ describe('sport configs', () => {
     for (const sport of SPORTS) {
       expect(Array.isArray(sport.extraPeriods), `${sport.id}.extraPeriods`).toBe(true);
     }
+  });
+});
+
+describe('sport configs — stat tracking', () => {
+  it('Gaelic has a 0-point Wide as a 4th scoring button', () => {
+    const g = getSportConfig('gaelic_football');
+    expect(g.scoringEvents).toHaveLength(4);
+    const wide = g.scoringEvents.find((e) => e.type === 'wide');
+    expect(wide).toBeDefined();
+    expect(wide?.points).toBe(0);
+  });
+  it('Gaelic tracks a penalty stat', () => {
+    expect(getSportConfig('gaelic_football').statEvents.map((s) => s.type)).toContain('penalty');
+  });
+  it('Soccer tracks assist, throw-in, corner, off-side, penalty', () => {
+    const types = getSportConfig('soccer').statEvents.map((s) => s.type);
+    expect(types).toEqual(expect.arrayContaining(['assist', 'throw_in', 'corner', 'offside', 'penalty']));
   });
 });
