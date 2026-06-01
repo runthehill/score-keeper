@@ -6,8 +6,6 @@ beforeEach(() => localStorage.clear());
 describe('settings squad colours', () => {
   it('round-trips a squad with kit colours through save/load', () => {
     const settings: AppSettings = {
-      defaultHomeTeam: '',
-      defaultAwayTeam: '',
       darkMode: true,
       squads: { soccer: { teamName: 'Strand', players: [], primary: '#1E8E4E', secondary: '#FFFFFF' } },
     };

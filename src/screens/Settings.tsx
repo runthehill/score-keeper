@@ -149,10 +149,10 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Default squads */}
+      {/* Default teams (stored internally as `squads` — label-only rename, no migration) */}
       <section>
-        <h2 className={EYEBROW}>Default squads</h2>
-        <p className="text-xs text-txt-3 mb-2.5">Set up your team and squad for each sport. Load them quickly when starting a game.</p>
+        <h2 className={EYEBROW}>Default teams</h2>
+        <p className="text-xs text-txt-3 mb-2.5">Save a team per sport — name, colours, and optional players. Load it in one tap when starting a game.</p>
         <div className="space-y-2">
           {SPORTS.map((sport) => {
             const squad = settings.squads[sport.id];
@@ -164,28 +164,13 @@ export default function Settings() {
                   <TeamKitChip primary={kit.primary} secondary={kit.secondary} size={18} radius={5} />
                   <div className="text-left">
                     <p className="text-sm font-semibold text-txt">{sport.name}</p>
-                    <p className="text-xs text-txt-3">{squad ? `${squad.teamName} — ${squad.players.length} players` : 'No squad set'}</p>
+                    <p className="text-xs text-txt-3">{squad ? `${squad.teamName} — ${squad.players.length > 0 ? `${squad.players.length} players` : 'Name & colours'}` : 'No team set'}</p>
                   </div>
                 </div>
                 <span className="text-txt-3 text-sm">{squad ? 'Edit' : '+'}</span>
               </button>
             );
           })}
-        </div>
-      </section>
-
-      {/* Default team names */}
-      <section>
-        <h2 className={EYEBROW}>Default team names</h2>
-        <div className="space-y-3">
-          <div>
-            <label htmlFor="default-home-team" className="text-xs text-txt-3 mb-1 block">Home team</label>
-            <input id="default-home-team" type="text" value={settings.defaultHomeTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultHomeTeam: e.target.value }))} placeholder="e.g. Sligo All Stars" className={INPUT} />
-          </div>
-          <div>
-            <label htmlFor="default-away-team" className="text-xs text-txt-3 mb-1 block">Away team</label>
-            <input id="default-away-team" type="text" value={settings.defaultAwayTeam} onChange={(e) => setSettings((s) => ({ ...s, defaultAwayTeam: e.target.value }))} placeholder="e.g. Limerick Celtics" className={INPUT} />
-          </div>
         </div>
       </section>
 
@@ -229,7 +214,7 @@ export default function Settings() {
           <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-extrabold text-txt flex items-center gap-2">
-                <span aria-hidden="true">{getSportConfig(editingSport).icon}</span> {getSportConfig(editingSport).name} squad
+                <span aria-hidden="true">{getSportConfig(editingSport).icon}</span> {getSportConfig(editingSport).name} team
               </h3>
               {settings.squads[editingSport] && (
                 <button type="button" onClick={deleteSquad} className="text-xs text-danger">Clear</button>
@@ -281,7 +266,7 @@ export default function Settings() {
 
             <div className="flex gap-3 mt-4">
               <button type="button" onClick={() => setEditingSport(null)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
-              <button type="button" onClick={saveSquad} disabled={!squadName.trim()} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-40 press">Save squad</button>
+              <button type="button" onClick={saveSquad} disabled={!squadName.trim()} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-40 press">Save team</button>
             </div>
           </div>
         </div>
