@@ -26,8 +26,8 @@ export default function GameSetup() {
   const appSettings = loadSettings();
   const defaultSquad = appSettings.squads[sport.id];
 
-  const [homeTeam, setHomeTeam] = useState(appSettings.defaultHomeTeam || '');
-  const [awayTeam, setAwayTeam] = useState(appSettings.defaultAwayTeam || '');
+  const [homeTeam, setHomeTeam] = useState('');
+  const [awayTeam, setAwayTeam] = useState('');
   const [homeKit, setHomeKit] = useState(DEFAULT_HOME_KITS[sport.id]);
   const [awayKit, setAwayKit] = useState(DEFAULT_AWAY_KIT);
   const [picker, setPicker] = useState<Team | null>(null);
@@ -152,7 +152,7 @@ export default function GameSetup() {
                 onClick={() => loadSquad(which)}
                 className="shrink-0 bg-surface-2 border border-line rounded-lg px-2.5 py-1 text-[11px] font-semibold text-txt-2 press"
               >
-                {defaultSquad.teamName}
+                Use {defaultSquad.teamName}
               </button>
             )}
           </div>

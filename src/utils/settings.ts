@@ -3,8 +3,6 @@ import type { Sport, DefaultSquad } from '../types';
 export const SETTINGS_KEY = 'score-keeper-settings';
 
 export interface AppSettings {
-  defaultHomeTeam: string;
-  defaultAwayTeam: string;
   darkMode: boolean;
   squads: Partial<Record<Sport, DefaultSquad>>;
 }
@@ -14,12 +12,13 @@ export function loadSettings(): AppSettings {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { defaultHomeTeam: '', defaultAwayTeam: '', darkMode: true, squads: {}, ...parsed };
+      // Older stored settings may still carry the removed default team name fields — harmless; ignored.
+      return { darkMode: true, squads: {}, ...parsed };
     }
   } catch {
     // Ignore malformed JSON or unavailable localStorage; fall back to defaults below.
   }
-  return { defaultHomeTeam: '', defaultAwayTeam: '', darkMode: true, squads: {} };
+  return { darkMode: true, squads: {} };
 }
 
 export function saveSettings(settings: AppSettings) {

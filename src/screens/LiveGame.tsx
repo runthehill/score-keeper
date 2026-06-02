@@ -15,6 +15,7 @@ import PlayerPicker from '../components/PlayerPicker';
 import SubstitutionFlow from '../components/SubstitutionFlow';
 import ShareSheet from '../components/ShareSheet';
 import TeamKitChip from '../components/TeamKitChip';
+import { ChevronLeft } from '../components/icons';
 
 export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -210,9 +211,19 @@ export default function LiveGame() {
     <div className="p-3 space-y-3 pb-8">
       {/* Sport badge + period */}
       <div className="flex items-center justify-between">
-        <span className="bg-surface-2 border border-line text-txt-2 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-[0.06em]">
-          {sport.name}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            aria-label="Back to home"
+            className="w-8 h-8 shrink-0 grid place-items-center rounded-full bg-surface-2 border border-line text-txt press"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className="bg-surface-2 border border-line text-txt-2 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-[0.06em]">
+            {sport.name}
+          </span>
+        </div>
         <span className="text-xs text-txt-3">
           {extraPeriodLabel ? extraPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
         </span>

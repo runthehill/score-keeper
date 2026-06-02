@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.20] - 2026-06-01
+
+### Added
+- A back button (chevron) in the live game header — tap it to return Home; the game keeps running and resumes from the "In progress" list. Useful as an installed PWA, where there's no browser back button.
+
+### Changed
+- "Default squads" is now "Default teams" throughout Settings — a saved team is a name, kit colours, and *optional* players, so it works even when you only set a name and colours.
+- The quick-select chip in a new game now reads "Use {team}" (instead of just the team name), making it clearer that tapping it fills that side. It still works for either side.
+
+### Removed
+- The global "Default team names" setting (Home/Away). It predated per-sport default teams and was redundant; new games now start with empty name fields (with the usual placeholders).
+
 ## [1.1.19] - 2026-06-01
 
 ### Fixed
