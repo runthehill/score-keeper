@@ -8,6 +8,7 @@ import LiveGame from './screens/LiveGame';
 import GameSummary from './screens/GameSummary';
 import History from './screens/History';
 import Settings from './screens/Settings';
+import PwaReloadPrompt from './components/PwaReloadPrompt';
 
 function AppRoutes() {
   const ready = useDBReady();
@@ -42,6 +43,7 @@ export default function App() {
     <HashRouter>
       <DBProvider>
         <AppRoutes />
+        <PwaReloadPrompt />
       </DBProvider>
     </HashRouter>
   );

@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['sql-wasm.wasm', 'sql-wasm-browser.wasm'],
       manifest: {
         name: "Jonathan's Score Keeper",
