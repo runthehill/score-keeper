@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { formatScore, formatGaelicScore, formatTimer, formatEventTime, formatRelativeDay } from './format';
+import { formatScore, formatGaelicScore, formatTimer, formatEventTime, formatRelativeDay, runningTally, eventLabel } from './format';
+import { getSportConfig } from '../sports/configs';
 import type { GameEvent } from '../types';
 
 describe('formatScore', () => {
@@ -97,5 +98,47 @@ describe('formatGaelicScore', () => {
     const base = [ev('goal', 3), ev('point', 1), ev('two_pointer', 2)];
     expect(formatGaelicScore(base, 'home')).toBe('1-03');
     expect(formatGaelicScore([...base, ev('wide', 0)], 'home')).toBe('1-03');
+  });
+});
+
+describe('runningTally', () => {
+  it('non-split: cumulative point totals as strings', () => {
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'goal', team: 'home', points: 1 },
+      { event_type: 'goal', team: 'away', points: 1 },
+      { event_type: 'goal', team: 'home', points: 1 },
+    ];
+    expect(runningTally(events, false)).toEqual([
+      { home: '1', away: '0' },
+      { home: '1', away: '1' },
+      { home: '2', away: '1' },
+    ]);
+  });
+
+  it('split: cumulative goals-points per team', () => {
+    const events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[] = [
+      { event_type: 'goal', team: 'home', points: 3 },
+      { event_type: 'point', team: 'home', points: 1 },
+      { event_type: 'point', team: 'away', points: 1 },
+    ];
+    expect(runningTally(events, true)).toEqual([
+      { home: '1-00', away: '0-00' },
+      { home: '1-01', away: '0-00' },
+      { home: '1-01', away: '0-01' },
+    ]);
+  });
+});
+
+describe('eventLabel', () => {
+  const soccer = getSportConfig('soccer');
+  it('uses the config label for a stat type', () => {
+    expect(eventLabel(soccer, 'throw_in')).toBe('Throw-in');
+    expect(eventLabel(soccer, 'offside')).toBe('Off-side');
+  });
+  it('uses the config label for a card type', () => {
+    expect(eventLabel(soccer, 'card_yellow')).toBe('Yellow Card');
+  });
+  it('falls back to a capitalised de-underscored type when unknown', () => {
+    expect(eventLabel(soccer, 'substitution')).toBe('Substitution');
   });
 });

@@ -1,4 +1,4 @@
-import type { GameEvent, ScoreDisplay, Team } from '../types';
+import type { GameEvent, ScoreDisplay, SportConfig, Team } from '../types';
 
 export function formatScore(display: ScoreDisplay, totalPoints: number, events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[], team?: Team): string {
   if (display === 'split' && team) {
@@ -14,6 +14,37 @@ export function formatGaelicScore(events: Pick<GameEvent, 'event_type' | 'team' 
     .filter((e) => e.event_type !== 'goal')
     .reduce((sum, e) => sum + e.points, 0);
   return `${goals}-${String(points).padStart(2, '0')}`;
+}
+
+export function runningTally(
+  events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[],
+  isSplit: boolean,
+): { home: string; away: string }[] {
+  if (isSplit) {
+    // Gaelic: each row shows the goals-points scoreline so far for both teams.
+    return events.map((_event, i) => {
+      const soFar = events.slice(0, i + 1);
+      return { home: formatGaelicScore(soFar, 'home'), away: formatGaelicScore(soFar, 'away') };
+    });
+  }
+  // Other sports: a cumulative point total per team.
+  let homeTotal = 0;
+  let awayTotal = 0;
+  return events.map((e) => {
+    if (e.team === 'home') homeTotal += e.points;
+    else awayTotal += e.points;
+    return { home: String(homeTotal), away: String(awayTotal) };
+  });
+}
+
+export function eventLabel(sport: SportConfig, type: string): string {
+  const match =
+    sport.scoringEvents.find((e) => e.type === type) ??
+    sport.statEvents.find((e) => e.type === type) ??
+    sport.cardEvents.find((e) => e.type === type);
+  if (match) return match.label;
+  const words = type.replace(/_/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 export function formatTimer(totalSeconds: number): string {
