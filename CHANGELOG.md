@@ -8,6 +8,15 @@ All notable changes to this project will be documented in this file.
 - Gaelic Football play-by-play: the running tally beside each play now shows the goals-points scoreline for both teams (e.g. "1-04 v 0-07") instead of a combined points total, matching the scoreboard and result.
 - Events now use their proper names in the play-by-play and the result's player stats — e.g. "Throw-in", "Off-side", "Yellow Card" — instead of the raw "throw in" / "card yellow" style.
 
+## [1.1.21] - 2026-06-02
+
+### Added
+- An in-app "New version available — Reload" prompt. When a new version has been deployed, a small toast appears (the app now checks for updates when you reopen it and hourly while it's open); tap **Reload** to update. It never reloads on its own, so it won't interrupt a live game.
+- A one-time "Ready to work offline" notice the first time the app finishes caching, so you know it's safe to use without a connection. It dismisses itself after a few seconds.
+
+### Changed
+- The PWA now uses prompt-based updates instead of updating silently — so you actually get told when there's a new version, fixing the "I don't see my changes" confusion.
+
 ## [1.1.20] - 2026-06-01
 
 ### Added
