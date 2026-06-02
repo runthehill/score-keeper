@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.22] - 2026-06-02
+
+### Changed
+- Gaelic Football play-by-play: the running tally beside each play now shows the goals-points scoreline for both teams (e.g. "1-04 v 0-07") instead of a combined points total, matching the scoreboard and result.
+- Events now use their proper names in the play-by-play and the result's player stats — e.g. "Throw-in", "Off-side", "Yellow Card" — instead of the raw "throw in" / "card yellow" style.
+
 ## [1.1.20] - 2026-06-01
 
 ### Added
