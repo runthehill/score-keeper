@@ -6,7 +6,7 @@ const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000; // hourly
 const OFFLINE_READY_TIMEOUT_MS = 5000;
 
 export default function PwaReloadPrompt() {
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | undefined>();
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
@@ -38,6 +38,8 @@ export default function PwaReloadPrompt() {
     return () => clearTimeout(t);
   }, [offlineReady, setOfflineReady]);
 
+  // updateServiceWorker() activates the waiting worker; vite-plugin-pwa then reloads the
+  // page itself via workbox's "controlling" event (the boolean arg is a no-op in v1.2+).
   if (needRefresh) {
     return (
       <UpdateToast
