@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Score Keeper app icon: four kit-colour dots (bold 2×2) on the dark "Sideline" surface.
+       Full-bleed + centred within the maskable safe zone; source for icon-192/512.png. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15181f"/>
+      <stop offset="1" stop-color="#0a0c10"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="176" cy="176" r="74" fill="#2b9ad5"/>
+  <circle cx="336" cy="176" r="74" fill="#ea493c"/>
+  <circle cx="176" cy="336" r="74" fill="#f4c720"/>
+  <circle cx="336" cy="336" r="74" fill="#47b26c"/>
+</svg>
