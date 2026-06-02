@@ -10,9 +10,9 @@ describe('UpdateToast', () => {
     render(<UpdateToast kind="update" onReload={onReload} onDismiss={onDismiss} />);
 
     expect(screen.getByText(/new version available/i)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /reload/i }));
+    await userEvent.setup().click(screen.getByRole('button', { name: /reload/i }));
     expect(onReload).toHaveBeenCalledOnce();
-    await userEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+    await userEvent.setup().click(screen.getByRole('button', { name: /dismiss/i }));
     expect(onDismiss).toHaveBeenCalledOnce();
   });
 
@@ -22,7 +22,7 @@ describe('UpdateToast', () => {
 
     expect(screen.getByText(/ready to work offline/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /reload/i })).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+    await userEvent.setup().click(screen.getByRole('button', { name: /dismiss/i }));
     expect(onDismiss).toHaveBeenCalledOnce();
   });
 });

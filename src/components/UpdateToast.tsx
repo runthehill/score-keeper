@@ -1,8 +1,7 @@
-interface UpdateToastProps {
-  kind: 'update' | 'offline-ready';
-  onReload?: () => void; // used only by kind="update"
-  onDismiss: () => void;
-}
+// Discriminated union: the update variant requires onReload; offline-ready has none.
+type UpdateToastProps =
+  | { kind: 'update'; onReload: () => void; onDismiss: () => void }
+  | { kind: 'offline-ready'; onReload?: undefined; onDismiss: () => void };
 
 export default function UpdateToast({ kind, onReload, onDismiss }: UpdateToastProps) {
   const isUpdate = kind === 'update';
