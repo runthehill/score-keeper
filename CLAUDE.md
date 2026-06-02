@@ -46,7 +46,7 @@ npx vitest       # Watch mode
 ## Conventions
 
 - Use the `gh` CLI for all GitHub operations (PRs, issues).
-- **Style with theme tokens, not hex.** Use the CSS-variable classes — `bg-bg`, `bg-surface`, `bg-surface-2`, `text-txt` / `text-txt-2` / `text-txt-3`, `border-line` / `border-line-2`, `text-danger` (defined in `src/index.css`). They adapt to dark/light automatically.
+- **Style with theme tokens, not hex.** Use the token classes — `bg-bg`, `bg-surface`, `bg-surface-2`, `text-txt` / `text-txt-2` / `text-txt-3`, `border-line` / `border-line-2`, `text-danger`. The underlying CSS variables (`--bg`, `--txt`, …) are defined in `src/index.css` and mapped to these Tailwind classes in `tailwind.config.js`; they adapt to dark/light automatically.
 - **Team colours are per-game kits** (a primary + secondary, chosen at setup, stored on the game). UI tints use `teamAccent(team, dark)` (theme-aware, `src/utils/teamColors.ts`); the true kit shows via `TeamKitChip`. (Superseded the old fixed home=blue/away=amber convention in the Sideline refresh.)
 - All DB primary keys are UUIDs; timestamps are ISO 8601.
 - TDD: write a failing test, implement, verify it passes.
