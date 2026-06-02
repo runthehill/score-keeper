@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.23] - 2026-06-02
+
+### Changed
+- New app icon: the four kit-colour dots (matching the in-app header) on the dark surface, replacing the generic blue "SK" placeholder. Ships as a maskable icon (no clipping in Android adaptive shapes) with a matching SVG favicon for browser tabs.
+
+### Removed
+- Orphaned starter-template assets (`public/icons.svg`, and the old placeholder `favicon.svg`).
+
 ## [1.1.22] - 2026-06-02
 
 ### Changed
