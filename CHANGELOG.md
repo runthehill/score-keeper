@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 - The global "Default team names" setting (Home/Away). It predated per-sport default teams and was redundant; new games now start with empty name fields (with the usual placeholders).
 
+## [1.1.19] - 2026-06-01
+
 ### Fixed
 - The game summary's "By half/quarter" breakdown now shows the Gaelic Football goals-points score per period (e.g. "1-03"), matching the rest of the app — it previously showed the raw points total.
 
