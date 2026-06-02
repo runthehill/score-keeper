@@ -6,7 +6,7 @@ import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
 import { getGame, listEvents, listPlayers } from '../db/queries';
 import { teamAccent } from '../utils/teamColors';
-import { formatGaelicScore } from '../utils/format';
+import { formatGaelicScore, eventLabel } from '../utils/format';
 import { buildShareModel, shareFilename } from '../utils/shareCard';
 import { exportShareCard } from '../utils/exportShareCard';
 import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
@@ -126,7 +126,7 @@ export default function GameSummary() {
                     {player.name}
                   </p>
                   <p className="text-xs text-txt-3">
-                    {Array.from(byType.entries()).map(([type, count]) => `${count} ${type.replace(/_/g, ' ')}`).join(', ')}
+                    {Array.from(byType.entries()).map(([type, count]) => `${count} ${eventLabel(sport, type)}`).join(', ')}
                   </p>
                 </div>
                 {points > 0 && <span className="text-sm font-bold text-txt shrink-0 ml-3">{points} pts</span>}
