@@ -20,15 +20,19 @@ export function runningTally(
   events: Pick<GameEvent, 'event_type' | 'team' | 'points'>[],
   isSplit: boolean,
 ): { home: string; away: string }[] {
-  let homeTotal = 0;
-  let awayTotal = 0;
-  return events.map((e, i) => {
-    if (e.team === 'home') homeTotal += e.points;
-    else awayTotal += e.points;
-    if (isSplit) {
+  if (isSplit) {
+    // Gaelic: each row shows the goals-points scoreline so far for both teams.
+    return events.map((_event, i) => {
       const soFar = events.slice(0, i + 1);
       return { home: formatGaelicScore(soFar, 'home'), away: formatGaelicScore(soFar, 'away') };
-    }
+    });
+  }
+  // Other sports: a cumulative point total per team.
+  let homeTotal = 0;
+  let awayTotal = 0;
+  return events.map((e) => {
+    if (e.team === 'home') homeTotal += e.points;
+    else awayTotal += e.points;
     return { home: String(homeTotal), away: String(awayTotal) };
   });
 }
