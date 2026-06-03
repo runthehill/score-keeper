@@ -1,4 +1,4 @@
-import type { Database, BindParams } from 'sql.js';
+import type { Database, BindParams, SqlValue } from 'sql.js';
 import type { Game, Player, GameEvent, Sport, Team, PlayerStatus } from '../types';
 import { DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT } from '../sports/kits';
 
@@ -11,6 +11,12 @@ function rowToGame(row: Record<string, unknown>): Game {
     ended_at: (row.ended_at as string) || null, notes: (row.notes as string) || '',
     home_primary: row.home_primary as string, home_secondary: row.home_secondary as string,
     away_primary: row.away_primary as string, away_secondary: row.away_secondary as string,
+    clock_running: (row.clock_running as number) ?? 0,
+    clock_base_ms: (row.clock_base_ms as number) ?? 0,
+    clock_anchor: (row.clock_anchor as string) || null,
+    clock_active: (row.clock_active as number) ?? 0,
+    current_period: (row.current_period as number) ?? 1,
+    current_period_label: (row.current_period_label as string) || null,
   };
 }
 
@@ -27,6 +33,7 @@ function rowToEvent(row: Record<string, unknown>): GameEvent {
     player_id: (row.player_id as string) || null, team: row.team as Team,
     event_type: row.event_type as string, points: row.points as number,
     half_or_period: row.half_or_period as number, timestamp: row.timestamp as string,
+    clock_seconds: row.clock_seconds == null ? null : (row.clock_seconds as number),
   };
 }
 
@@ -71,6 +78,18 @@ export function updateGameColors(db: Database, id: string, colors: { home_primar
     [colors.home_primary, colors.home_secondary, colors.away_primary, colors.away_secondary, id]);
 }
 
+const CLOCK_COLUMNS = new Set([
+  'clock_running', 'clock_base_ms', 'clock_anchor', 'clock_active', 'current_period', 'current_period_label',
+]);
+
+export function updateClock(db: Database, id: string, patch: Record<string, unknown>) {
+  const cols = Object.keys(patch).filter((c) => CLOCK_COLUMNS.has(c));
+  if (cols.length === 0) return;
+  const assignments = cols.map((c) => `${c} = ?`).join(', ');
+  const values = cols.map((c) => patch[c] as SqlValue);
+  db.run(`UPDATE games SET ${assignments} WHERE id = ?`, [...values, id]);
+}
+
 export function insertPlayer(db: Database, player: Player) {
   db.run('INSERT INTO players (id, game_id, team, name, number, status) VALUES (?, ?, ?, ?, ?, ?)',
     [player.id, player.game_id, player.team, player.name, player.number, player.status]);
@@ -86,8 +105,8 @@ export function updatePlayerStatus(db: Database, id: string, status: PlayerStatu
 }
 
 export function insertEvent(db: Database, event: GameEvent) {
-  db.run('INSERT INTO events (id, game_id, player_id, team, event_type, points, half_or_period, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [event.id, event.game_id, event.player_id, event.team, event.event_type, event.points, event.half_or_period, event.timestamp]);
+  db.run('INSERT INTO events (id, game_id, player_id, team, event_type, points, half_or_period, timestamp, clock_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [event.id, event.game_id, event.player_id, event.team, event.event_type, event.points, event.half_or_period, event.timestamp, event.clock_seconds ?? null]);
 }
 
 export function listEvents(db: Database, gameId: string): GameEvent[] {

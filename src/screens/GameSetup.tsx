@@ -25,6 +25,7 @@ export default function GameSetup() {
   const sport = getSportConfig(sportId as Sport);
   const appSettings = loadSettings();
   const defaultSquad = appSettings.squads[sport.id];
+  const defaultLength = appSettings.periodLengths?.[sport.id];
 
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
@@ -38,6 +39,7 @@ export default function GameSetup() {
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
   const [addingFor, setAddingFor] = useState<Team>('home');
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodConfig>(sport.periods);
+  const [periodLength, setPeriodLength] = useState(defaultLength ? String(defaultLength) : '');
 
   const loadSquad = (team: Team) => {
     if (!defaultSquad) return;
@@ -71,7 +73,12 @@ export default function GameSetup() {
   const startGame = () => {
     if (!homeTeam.trim() || !awayTeam.trim()) return;
     const gameId = uuid();
-    const metadata: GameMetadata = { periodCount: selectedPeriod.count, periodName: selectedPeriod.name };
+    const lengthNum = Math.floor(Number(periodLength) || 0);
+    const metadata: GameMetadata = {
+      periodCount: selectedPeriod.count,
+      periodName: selectedPeriod.name,
+      ...(lengthNum > 0 ? { periodLengthMinutes: lengthNum } : {}),
+    };
     insertGame(db, {
       id: gameId,
       sport: sport.id,
@@ -213,6 +220,23 @@ export default function GameSetup() {
           </div>
         </div>
       )}
+
+      {/* Period length (optional) */}
+      <div>
+        <p className={`${eyebrow} mb-2`}>{selectedPeriod.name} length</p>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            value={periodLength}
+            onChange={(e) => setPeriodLength(e.target.value)}
+            placeholder="Optional"
+            className="w-28 bg-surface-2 border border-line rounded-xl px-4 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3"
+          />
+          <span className="text-sm text-txt-3">minutes — leave blank for a free-running clock</span>
+        </div>
+      </div>
 
       {/* Players (optional) */}
       {!showPlayers ? (

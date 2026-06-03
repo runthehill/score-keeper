@@ -1,7 +1,7 @@
 import type { Game, GameEvent, Player, Team } from '../types';
 import { useThemeContext } from '../hooks/useTheme';
 import { teamAccent } from '../utils/teamColors';
-import { formatEventTime, runningTally, eventLabel } from '../utils/format';
+import { formatEventTime, formatTimer, runningTally, eventLabel } from '../utils/format';
 import { getSportConfig } from '../sports/configs';
 
 interface Props {
@@ -47,7 +47,9 @@ export default function EventLog({ events, players, game, gameStartedAt }: Props
           const label = eventLabel(sport, e.event_type);
           return (
             <div key={e.id} className="flex items-center gap-3 py-2 px-1">
-              <span className="font-score font-semibold text-sm text-txt-3 w-[42px] tabular-nums shrink-0">{formatEventTime(e.timestamp, gameStartedAt)}</span>
+              <span className="font-score font-semibold text-sm text-txt-3 w-[42px] tabular-nums shrink-0">
+                {e.clock_seconds != null ? formatTimer(e.clock_seconds) : formatEventTime(e.timestamp, gameStartedAt)}
+              </span>
               <span className="w-[3px] h-[22px] rounded-full shrink-0" style={{ background: accent }} />
               <span className="text-[13.5px] font-bold text-txt shrink-0">{label}</span>
               <span className="text-[12.5px] text-txt-3 truncate flex-1 min-w-0">{teamName}{player ? ` · ${player.name}` : ''}</span>

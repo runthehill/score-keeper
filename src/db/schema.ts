@@ -33,7 +33,13 @@ export function createTables(db: Database) {
       home_primary TEXT NOT NULL DEFAULT '#15171C',
       home_secondary TEXT NOT NULL DEFAULT '#FFFFFF',
       away_primary TEXT NOT NULL DEFAULT '#1E63D6',
-      away_secondary TEXT NOT NULL DEFAULT '#FFFFFF'
+      away_secondary TEXT NOT NULL DEFAULT '#FFFFFF',
+      clock_running INTEGER NOT NULL DEFAULT 0,
+      clock_base_ms INTEGER NOT NULL DEFAULT 0,
+      clock_anchor TEXT,
+      clock_active INTEGER NOT NULL DEFAULT 0,
+      current_period INTEGER NOT NULL DEFAULT 1,
+      current_period_label TEXT
     )
   `);
 
@@ -57,7 +63,8 @@ export function createTables(db: Database) {
       event_type TEXT NOT NULL,
       points INTEGER NOT NULL DEFAULT 0,
       half_or_period INTEGER NOT NULL DEFAULT 1,
-      timestamp TEXT NOT NULL
+      timestamp TEXT NOT NULL,
+      clock_seconds INTEGER
     )
   `);
 
@@ -70,4 +77,13 @@ export function createTables(db: Database) {
   addColumn(db, 'games', 'home_secondary', "TEXT NOT NULL DEFAULT '#FFFFFF'");
   addColumn(db, 'games', 'away_primary', "TEXT NOT NULL DEFAULT '#1E63D6'");
   addColumn(db, 'games', 'away_secondary', "TEXT NOT NULL DEFAULT '#FFFFFF'");
+
+  // Migration: persisted match-clock state (older DBs predate these columns).
+  addColumn(db, 'games', 'clock_running', 'INTEGER NOT NULL DEFAULT 0');
+  addColumn(db, 'games', 'clock_base_ms', 'INTEGER NOT NULL DEFAULT 0');
+  addColumn(db, 'games', 'clock_anchor', 'TEXT');
+  addColumn(db, 'games', 'clock_active', 'INTEGER NOT NULL DEFAULT 0');
+  addColumn(db, 'games', 'current_period', 'INTEGER NOT NULL DEFAULT 1');
+  addColumn(db, 'games', 'current_period_label', 'TEXT');
+  addColumn(db, 'events', 'clock_seconds', 'INTEGER');
 }
