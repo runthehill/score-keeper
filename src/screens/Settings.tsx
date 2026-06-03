@@ -98,6 +98,16 @@ export default function Settings() {
     setEditingSport(null);
   };
 
+  const setPeriodLength = (sportId: Sport, value: string) => {
+    const n = Math.floor(Number(value) || 0);
+    setSettings((s) => {
+      const periodLengths = { ...(s.periodLengths ?? {}) };
+      if (n > 0) periodLengths[sportId] = n;
+      else delete periodLengths[sportId];
+      return { ...s, periodLengths };
+    });
+  };
+
   const handleExportAll = () => {
     const games = listGames(db);
     const allData = games.map((game) => ({
@@ -171,6 +181,35 @@ export default function Settings() {
               </button>
             );
           })}
+        </div>
+      </section>
+
+      {/* Default period lengths */}
+      <section>
+        <h2 className={EYEBROW}>Match length defaults</h2>
+        <p className="text-xs text-txt-3 mb-2.5">Default minutes per half/period for each sport. Pre-fills new games; leave blank for a free-running clock.</p>
+        <div className="space-y-2">
+          {SPORTS.map((sport) => (
+            <div key={sport.id} className="w-full bg-surface border border-line rounded-2xl px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xl" aria-hidden="true">{sport.icon}</span>
+                <p className="text-sm font-semibold text-txt">{sport.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  aria-label={`${sport.name} default length in minutes`}
+                  value={settings.periodLengths?.[sport.id] ?? ''}
+                  onChange={(e) => setPeriodLength(sport.id, e.target.value)}
+                  placeholder="—"
+                  className="w-16 bg-surface-2 border border-line rounded-xl px-2 py-2 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3"
+                />
+                <span className="text-xs text-txt-3">min</span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
