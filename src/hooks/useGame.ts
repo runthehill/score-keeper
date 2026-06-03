@@ -78,6 +78,10 @@ export function useGame(gameId: string) {
   const running = !!game?.clock_running;
   useEffect(() => {
     if (!running) return;
+    // Refresh immediately so resuming after a pause doesn't wait up to a second
+    // for the first tick (the freshly-written anchor would otherwise be ahead of nowMs).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNowMs(Date.now());
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, [running]);
@@ -162,12 +166,15 @@ export function useGame(gameId: string) {
       const cfg = getSportConfig(g.sport);
       const len = meta.periodLengthMinutes ?? null;
       const count = meta.periodCount ?? cfg.periods.count;
-      const newPeriod = (g.current_period ?? 1) + 1;
+      // Use the effective current period (which, for games migrated from before
+      // current_period was persisted, may be ahead of g.current_period — reload
+      // derives it as max(persisted, furthest event period)) so advancing always moves on.
+      const newPeriod = currentPeriod + 1;
       updateClock(db, gameId, computeNextPeriod(newPeriod, len, count, label));
       persist();
       reload();
     },
-    [db, gameId, persist, reload]
+    [db, gameId, persist, reload, currentPeriod]
   );
 
   const substitute = useCallback(

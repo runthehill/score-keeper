@@ -435,7 +435,7 @@ export default function LiveGame() {
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-extrabold mb-1 text-txt">
-              {isExtraPeriod ? `End of ${currentPeriodLabel}` : `End of ${periodName} ${currentPeriod}`}
+              {isExtraPeriod ? `End of ${currentPeriodLabel ?? `${periodName} ${currentPeriod}`}` : `End of ${periodName} ${currentPeriod}`}
             </h3>
             <p className="text-sm text-txt-3 mb-4">
               {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
