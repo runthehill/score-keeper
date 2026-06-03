@@ -15,3 +15,15 @@ describe('settings squad colours', () => {
     });
   });
 });
+
+describe('periodLengths setting', () => {
+  it('defaults to an empty object when unset', () => {
+    localStorage.clear();
+    expect(loadSettings().periodLengths).toEqual({});
+  });
+  it('round-trips a per-sport length', () => {
+    localStorage.clear();
+    saveSettings({ darkMode: true, squads: {}, periodLengths: { gaelic_football: 30 } });
+    expect(loadSettings().periodLengths).toEqual({ gaelic_football: 30 });
+  });
+});
