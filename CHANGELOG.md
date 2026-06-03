@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.24] - 2026-06-03
+
+### Added
+- Persistent match clock: the live timer now survives leaving and returning to a game, keeps real time while you're away, and can be paused and edited.
+- Optional per-half/period length (set per game, with a per-sport default in Settings) — the clock then reads continuous match time and turns red once a period runs over.
+
+### Changed
+- Event-log times now follow the match clock once you've started it (so they pause for half-time and stoppages); games where the clock is never started keep the previous wall-clock times.
+
 ## [1.1.23] - 2026-06-02
 
 ### Changed
