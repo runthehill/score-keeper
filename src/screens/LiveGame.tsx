@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import type { Team } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useGame } from '../hooks/useGame';
-import { useTimer } from '../hooks/useTimer';
 import { useDB } from '../hooks/useDB';
+import ClockEditModal from '../components/ClockEditModal';
 import { endGame } from '../db/queries';
 import Scoreboard from '../components/Scoreboard';
 import ScoringRow from '../components/ScoringRow';
@@ -21,9 +21,11 @@ export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const { db, persist } = useDB();
-  const { game, events, players, currentPeriod, periodCount, periodName, addEvent, undoLastEvent, advancePeriod, substitute } =
-    useGame(gameId!);
-  const timer = useTimer();
+  const {
+    game, events, players, currentPeriod, periodCount, periodName, periodLengthMinutes,
+    currentPeriodLabel, addEvent, undoLastEvent, advancePeriod, substitute,
+    liveSeconds, clockRunning, clockIsOvertime, toggleClock, setClockSeconds,
+  } = useGame(gameId!);
 
   const [pendingScore, setPendingScore] = useState<{
     team: Team;
@@ -38,7 +40,7 @@ export default function LiveGame() {
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showStatTeamPicker, setShowStatTeamPicker] = useState<string | null>(null);
   const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
-  const [extraPeriodLabel, setExtraPeriodLabel] = useState<string | null>(null);
+  const [showClockEdit, setShowClockEdit] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [flash, setFlash] = useState<Team | null>(null);
 
@@ -183,10 +185,9 @@ export default function LiveGame() {
   }, [currentPeriod, periodCount]);
 
   const confirmAdvancePeriod = useCallback(() => {
-    advancePeriod();
-    timer.reset();
+    advancePeriod(null);
     setShowPeriodConfirm(false);
-  }, [advancePeriod, timer]);
+  }, [advancePeriod]);
 
   const handleEndGame = useCallback(() => {
     endGame(db, gameId!, new Date().toISOString());
@@ -225,7 +226,7 @@ export default function LiveGame() {
           </span>
         </div>
         <span className="text-xs text-txt-3">
-          {extraPeriodLabel ? extraPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
+          {currentPeriodLabel ? currentPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
         </span>
       </div>
 
@@ -245,7 +246,7 @@ export default function LiveGame() {
           events={events}
           sport={sport}
           variant="live"
-          periodLabel={extraPeriodLabel ?? `${periodName} ${currentPeriod}`}
+          periodLabel={currentPeriodLabel ?? `${periodName} ${currentPeriod}`}
           onClose={() => setShowShare(false)}
         />
       )}
@@ -264,10 +265,12 @@ export default function LiveGame() {
 
       {/* Timer */}
       <Timer
-        seconds={timer.seconds}
-        running={timer.running}
-        onToggle={timer.toggle}
-        periodLabel={extraPeriodLabel ?? `${periodName} ${currentPeriod}`}
+        seconds={liveSeconds}
+        running={clockRunning}
+        overtime={clockIsOvertime}
+        onToggle={toggleClock}
+        onEdit={() => setShowClockEdit(true)}
+        periodLabel={currentPeriodLabel ?? `${periodName} ${currentPeriod}`}
       />
 
       {/* Home scoring */}
@@ -308,7 +311,7 @@ export default function LiveGame() {
         currentPeriod={currentPeriod}
         periodCount={periodCount}
         periodName={periodName}
-        extraPeriodLabel={extraPeriodLabel}
+        extraPeriodLabel={currentPeriodLabel}
       />
 
       {/* Event log */}
@@ -417,7 +420,7 @@ export default function LiveGame() {
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-extrabold mb-2 text-txt">Start {periodName} {currentPeriod + 1}?</h3>
-            <p className="text-sm text-txt-3 mb-4">The timer will reset to 00:00.</p>
+            <p className="text-sm text-txt-3 mb-4">{periodLengthMinutes ? `The clock continues into ${periodName} ${currentPeriod + 1}.` : 'The timer will reset to 00:00.'}</p>
             <div className="flex gap-3">
               <button onClick={() => setShowPeriodConfirm(false)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
               <button onClick={confirmAdvancePeriod} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold press">Next {periodName}</button>
@@ -432,7 +435,7 @@ export default function LiveGame() {
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative bg-surface rounded-2xl border border-line p-6 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-extrabold mb-1 text-txt">
-              {isExtraPeriod ? `End of ${extraPeriodLabel}` : `End of ${periodName} ${currentPeriod}`}
+              {isExtraPeriod ? `End of ${currentPeriodLabel}` : `End of ${periodName} ${currentPeriod}`}
             </h3>
             <p className="text-sm text-txt-3 mb-4">
               {game.home_team} {game.home_score} - {game.away_score} {game.away_team}
@@ -441,7 +444,7 @@ export default function LiveGame() {
               {sport.extraPeriods.map((ep) => (
                 <button
                   key={ep.type}
-                  onClick={() => { setShowEndOptions(false); setExtraPeriodLabel(ep.label); advancePeriod(); timer.reset(); }}
+                  onClick={() => { setShowEndOptions(false); advancePeriod(ep.label); }}
                   className="w-full py-3 bg-surface-2 border border-line rounded-xl text-sm font-semibold text-txt press"
                 >
                   {ep.label}
@@ -473,6 +476,14 @@ export default function LiveGame() {
             </div>
           </div>
         </div>
+      )}
+
+      {showClockEdit && (
+        <ClockEditModal
+          initialSeconds={liveSeconds}
+          onSet={setClockSeconds}
+          onClose={() => setShowClockEdit(false)}
+        />
       )}
     </div>
   );

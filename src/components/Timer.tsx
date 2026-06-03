@@ -6,7 +6,7 @@ interface Props {
   running: boolean;
   overtime?: boolean;
   onToggle: () => void;
-  onEdit?: () => void;
+  onEdit: () => void;
   periodLabel: string;
 }
 
@@ -18,7 +18,7 @@ function LiveDot() {
   );
 }
 
-export default function Timer({ seconds, running, overtime = false, onToggle, onEdit = () => {}, periodLabel }: Props) {
+export default function Timer({ seconds, running, overtime = false, onToggle, onEdit, periodLabel }: Props) {
   return (
     <div className="w-full flex items-center gap-2">
       <button
