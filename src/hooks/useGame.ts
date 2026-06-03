@@ -54,12 +54,12 @@ export function useGame(gameId: string) {
       const evts = listEvents(db, gameId);
       setEvents(evts);
       setPlayers(listPlayers(db, gameId));
-      if (g.current_period != null) {
-        setCurrentPeriod(g.current_period);
-      } else if (evts.length > 0) {
-        const maxPeriod = Math.max(...evts.map((e) => e.half_or_period));
-        setCurrentPeriod(maxPeriod);
-      }
+      // Effective period = the later of the persisted period and the furthest period
+      // any event reached. This keeps a started-but-scoreless period (persisted) and
+      // also restores the period for games saved before current_period existed (their
+      // migrated column defaults to 1 even though events may be in a later half).
+      const maxEventPeriod = evts.length > 0 ? Math.max(...evts.map((e) => e.half_or_period)) : 1;
+      setCurrentPeriod(Math.max(g.current_period ?? 1, maxEventPeriod));
     }
   }, [db, gameId]);
 
