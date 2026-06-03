@@ -12,11 +12,26 @@ import {
   updateGameScore,
   listPlayers,
   updatePlayerStatus,
+  updateClock,
 } from '../db/queries';
+import {
+  clockSeconds as computeClockSeconds, isOvertime as computeIsOvertime,
+  computeToggle, computeStart, computePause, computeSetTime, computeNextPeriod,
+  type ClockState,
+} from '../utils/clock';
 
 function parseMetadata(game: Game): GameMetadata {
   if (!game.notes) return {};
   try { return JSON.parse(game.notes) as GameMetadata; } catch { return {}; }
+}
+
+function toClockState(g: Game): ClockState {
+  return {
+    clock_running: g.clock_running ?? 0,
+    clock_base_ms: g.clock_base_ms ?? 0,
+    clock_anchor: g.clock_anchor ?? null,
+    clock_active: g.clock_active ?? 0,
+  };
 }
 
 export function useGame(gameId: string) {
@@ -30,6 +45,7 @@ export function useGame(gameId: string) {
   const metadata = useMemo(() => game ? parseMetadata(game) : {}, [game]);
   const periodCount = metadata.periodCount ?? sport?.periods.count ?? 2;
   const periodName = metadata.periodName ?? sport?.periods.name ?? 'Half';
+  const periodLengthMinutes = metadata.periodLengthMinutes ?? null;
 
   const reload = useCallback(() => {
     const g = getGame(db, gameId);
@@ -38,7 +54,9 @@ export function useGame(gameId: string) {
       const evts = listEvents(db, gameId);
       setEvents(evts);
       setPlayers(listPlayers(db, gameId));
-      if (evts.length > 0) {
+      if (g.current_period != null) {
+        setCurrentPeriod(g.current_period);
+      } else if (evts.length > 0) {
         const maxPeriod = Math.max(...evts.map((e) => e.half_or_period));
         setCurrentPeriod(maxPeriod);
       }
@@ -54,6 +72,23 @@ export function useGame(gameId: string) {
     reload();
   }, [reload]);
 
+  // 1-second display tick — only active while the clock is running.
+  // We store the timestamp in state so render reads a pure (state-derived) value.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const running = !!game?.clock_running;
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  // Live display values — recomputed each render (driven by the tick above)
+  const clockState = game ? toClockState(game) : { clock_running: 0, clock_base_ms: 0, clock_anchor: null, clock_active: 0 };
+  const liveSeconds = computeClockSeconds(clockState, nowMs);
+  const clockIsOvertime = game ? computeIsOvertime(clockState, nowMs, currentPeriod, periodLengthMinutes, periodCount) : false;
+  const clockActive = !!clockState.clock_active;
+  const currentPeriodLabel = game?.current_period_label ?? null;
+
   const recalcScore = useCallback(() => {
     const evts = listEvents(db, gameId);
     const homeScore = evts.filter((e) => e.team === 'home').reduce((s, e) => s + e.points, 0);
@@ -61,6 +96,34 @@ export function useGame(gameId: string) {
     updateGameScore(db, gameId, homeScore, awayScore);
     persist();
   }, [db, gameId, persist]);
+
+  // Clock action dispatcher
+  const applyClockTransition = useCallback(
+    (fn: (state: ClockState, now: number) => Parameters<typeof updateClock>[2]) => {
+      const g = getGame(db, gameId);
+      if (!g) return;
+      updateClock(db, gameId, fn(toClockState(g), Date.now()));
+      persist();
+      reload();
+    },
+    [db, gameId, persist, reload]
+  );
+
+  const toggleClock = useCallback(() => applyClockTransition(computeToggle), [applyClockTransition]);
+  const startClock = useCallback(() => applyClockTransition(computeStart), [applyClockTransition]);
+  const pauseClock = useCallback(() => applyClockTransition(computePause), [applyClockTransition]);
+  const setClockSeconds = useCallback(
+    (seconds: number) => applyClockTransition((state, now) => computeSetTime(state, seconds, now)),
+    [applyClockTransition]
+  );
+
+  // Snapshot the current clock position when recording an event
+  const snapshotClockSeconds = useCallback((): number | null => {
+    const g = getGame(db, gameId);
+    if (!g) return null;
+    const state = toClockState(g);
+    return state.clock_active ? computeClockSeconds(state, Date.now()) : null;
+  }, [db, gameId]);
 
   const addEvent = useCallback(
     (team: Team, eventType: string, points: number, playerId?: string) => {
@@ -73,12 +136,13 @@ export function useGame(gameId: string) {
         points,
         half_or_period: currentPeriod,
         timestamp: new Date().toISOString(),
+        clock_seconds: snapshotClockSeconds(),
       };
       insertEvent(db, event);
       recalcScore();
       reload();
     },
-    [db, gameId, currentPeriod, recalcScore, reload]
+    [db, gameId, currentPeriod, recalcScore, reload, snapshotClockSeconds]
   );
 
   const undoLastEvent = useCallback(() => {
@@ -90,12 +154,25 @@ export function useGame(gameId: string) {
     }
   }, [db, gameId, recalcScore, reload]);
 
-  const advancePeriod = useCallback(() => {
-    setCurrentPeriod((p) => p + 1);
-  }, []);
+  const advancePeriod = useCallback(
+    (label: string | null = null) => {
+      const g = getGame(db, gameId);
+      if (!g) return;
+      const meta = parseMetadata(g);
+      const cfg = getSportConfig(g.sport);
+      const len = meta.periodLengthMinutes ?? null;
+      const count = meta.periodCount ?? cfg.periods.count;
+      const newPeriod = (g.current_period ?? 1) + 1;
+      updateClock(db, gameId, computeNextPeriod(newPeriod, len, count, label));
+      persist();
+      reload();
+    },
+    [db, gameId, persist, reload]
+  );
 
   const substitute = useCallback(
     (team: Team, offPlayerId: string, onPlayerId: string) => {
+      const cs = snapshotClockSeconds();
       const now = new Date().toISOString();
       const offEvent: GameEvent = {
         id: uuid(),
@@ -106,6 +183,7 @@ export function useGame(gameId: string) {
         points: 0,
         half_or_period: currentPeriod,
         timestamp: now,
+        clock_seconds: cs,
       };
       const onEvent: GameEvent = {
         id: uuid(),
@@ -116,6 +194,7 @@ export function useGame(gameId: string) {
         points: 0,
         half_or_period: currentPeriod,
         timestamp: now,
+        clock_seconds: cs,
       };
       insertEvent(db, offEvent);
       insertEvent(db, onEvent);
@@ -124,7 +203,7 @@ export function useGame(gameId: string) {
       persist();
       reload();
     },
-    [db, gameId, currentPeriod, persist, reload]
+    [db, gameId, currentPeriod, persist, reload, snapshotClockSeconds]
   );
 
   return {
@@ -139,5 +218,15 @@ export function useGame(gameId: string) {
     advancePeriod,
     substitute,
     reload,
+    liveSeconds,
+    clockRunning: running,
+    clockActive,
+    clockIsOvertime,
+    currentPeriodLabel,
+    periodLengthMinutes,
+    toggleClock,
+    startClock,
+    pauseClock,
+    setClockSeconds,
   };
 }
