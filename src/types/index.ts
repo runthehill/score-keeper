@@ -19,6 +19,12 @@ export interface Game {
   home_secondary: string;
   away_primary: string;
   away_secondary: string;
+  clock_running?: number;
+  clock_base_ms?: number;
+  clock_anchor?: string | null;
+  clock_active?: number;
+  current_period?: number;
+  current_period_label?: string | null;
 }
 
 export interface Player {
@@ -39,6 +45,7 @@ export interface GameEvent {
   points: number;
   half_or_period: number;
   timestamp: string;
+  clock_seconds?: number | null;
 }
 
 export interface ScoringEventConfig {
@@ -86,6 +93,7 @@ export interface ExtraPeriodConfig {
 export interface GameMetadata {
   periodCount?: number;
   periodName?: string;
+  periodLengthMinutes?: number;
 }
 
 export interface SportConfig {
