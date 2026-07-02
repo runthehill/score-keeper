@@ -64,23 +64,18 @@ export default function Settings() {
   const patchEditing = (patch: Partial<SavedTeam>) =>
     setEditing((e) => (e ? { ...e, team: { ...e.team, ...patch } } : e));
 
+  // Note: persistence is handled by the useEffect([settings]) above — keep these
+  // updaters pure (no saveSettings side effect inside setSettings, which can run
+  // twice under StrictMode).
   const saveEditing = () => {
     if (!editing || !editing.team.teamName.trim()) return;
     const team: SavedTeam = { ...editing.team, teamName: editing.team.teamName.trim() };
-    setSettings((s) => {
-      const next = upsertSavedTeam(s, editing.sport, team);
-      saveSettings(next);
-      return next;
-    });
+    setSettings((s) => upsertSavedTeam(s, editing.sport, team));
     setEditing(null);
   };
 
   const removeTeam = (sport: Sport, teamId: string) => {
-    setSettings((s) => {
-      const next = deleteSavedTeam(s, sport, teamId);
-      saveSettings(next);
-      return next;
-    });
+    setSettings((s) => deleteSavedTeam(s, sport, teamId));
   };
 
   const setPeriodLength = (sportId: Sport, value: string) => {

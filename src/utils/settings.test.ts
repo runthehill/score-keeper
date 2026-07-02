@@ -31,6 +31,18 @@ describe('legacy squads migration', () => {
     ]);
   });
 
+  it('ignores untrusted keys in stored squads (no prototype pollution)', () => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      darkMode: true,
+      squads: { __proto__: { teamName: 'Evil', players: [] }, soccer: { teamName: 'Strand', players: [] } },
+    }));
+    const loaded = loadSettings();
+    expect(loaded.savedTeams?.soccer?.[0].teamName).toBe('Strand');
+    // The junk key is not treated as a sport and does not pollute Object.prototype.
+    expect((loaded.savedTeams as Record<string, unknown>).__proto__).not.toBeInstanceOf(Array);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
   it('does not overwrite existing savedTeams when squads is also present', () => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       darkMode: true,

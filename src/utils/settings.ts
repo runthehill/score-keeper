@@ -1,4 +1,5 @@
 import type { Sport, DefaultSquad, SavedTeam } from '../types';
+import { SPORTS } from '../sports/configs';
 
 export const SETTINGS_KEY = 'score-keeper-settings';
 
@@ -17,7 +18,10 @@ function migrateSquads(s: AppSettings): AppSettings {
   const squads = s.squads ?? {};
   const savedTeams = { ...(s.savedTeams ?? {}) };
   let changed = false;
-  for (const key of Object.keys(squads) as Sport[]) {
+  // Iterate a fixed allow-list of sport ids rather than Object.keys(squads):
+  // squads comes from localStorage JSON, so untrusted keys (e.g. "__proto__")
+  // must never reach object indexing/assignment.
+  for (const key of SPORTS.map((sp) => sp.id)) {
     const squad = squads[key];
     const existing = savedTeams[key];
     if (squad && !(existing && existing.length)) {
