@@ -34,6 +34,7 @@ export interface Player {
   name: string;
   number: number | null;
   status: PlayerStatus;
+  sort_order?: number;
 }
 
 export interface GameEvent {

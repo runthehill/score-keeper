@@ -50,7 +50,8 @@ export function createTables(db: Database) {
       team TEXT NOT NULL,
       name TEXT NOT NULL,
       number INTEGER,
-      status TEXT NOT NULL DEFAULT 'active'
+      status TEXT NOT NULL DEFAULT 'active',
+      sort_order INTEGER NOT NULL DEFAULT 0
     )
   `);
 
@@ -86,4 +87,7 @@ export function createTables(db: Database) {
   addColumn(db, 'games', 'current_period', 'INTEGER NOT NULL DEFAULT 1');
   addColumn(db, 'games', 'current_period_label', 'TEXT');
   addColumn(db, 'events', 'clock_seconds', 'INTEGER');
+
+  // Migration: manual player ordering (older DBs predate this column).
+  addColumn(db, 'players', 'sort_order', 'INTEGER NOT NULL DEFAULT 0');
 }

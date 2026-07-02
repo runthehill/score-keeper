@@ -24,6 +24,7 @@ function rowToPlayer(row: Record<string, unknown>): Player {
   return {
     id: row.id as string, game_id: row.game_id as string, team: row.team as Team,
     name: row.name as string, number: row.number as number | null, status: row.status as PlayerStatus,
+    sort_order: (row.sort_order as number) ?? 0,
   };
 }
 
@@ -78,6 +79,10 @@ export function updateGameColors(db: Database, id: string, colors: { home_primar
     [colors.home_primary, colors.home_secondary, colors.away_primary, colors.away_secondary, id]);
 }
 
+export function updateGameTeamNames(db: Database, id: string, home: string, away: string) {
+  db.run('UPDATE games SET home_team = ?, away_team = ? WHERE id = ?', [home, away, id]);
+}
+
 const CLOCK_COLUMNS = new Set([
   'clock_running', 'clock_base_ms', 'clock_anchor', 'clock_active', 'current_period', 'current_period_label',
 ]);
@@ -91,17 +96,25 @@ export function updateClock(db: Database, id: string, patch: Record<string, unkn
 }
 
 export function insertPlayer(db: Database, player: Player) {
-  db.run('INSERT INTO players (id, game_id, team, name, number, status) VALUES (?, ?, ?, ?, ?, ?)',
-    [player.id, player.game_id, player.team, player.name, player.number, player.status]);
+  db.run('INSERT INTO players (id, game_id, team, name, number, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [player.id, player.game_id, player.team, player.name, player.number, player.status, player.sort_order ?? 0]);
 }
 
 export function listPlayers(db: Database, gameId: string, team?: Team): Player[] {
-  if (team) return query(db, 'SELECT * FROM players WHERE game_id = ? AND team = ? ORDER BY number', [gameId, team], rowToPlayer);
-  return query(db, 'SELECT * FROM players WHERE game_id = ? ORDER BY team, number', [gameId], rowToPlayer);
+  if (team) return query(db, 'SELECT * FROM players WHERE game_id = ? AND team = ? ORDER BY sort_order, number', [gameId, team], rowToPlayer);
+  return query(db, 'SELECT * FROM players WHERE game_id = ? ORDER BY team, sort_order, number', [gameId], rowToPlayer);
 }
 
 export function updatePlayerStatus(db: Database, id: string, status: PlayerStatus) {
   db.run('UPDATE players SET status = ? WHERE id = ?', [status, id]);
+}
+
+export function updatePlayer(db: Database, id: string, fields: { name: string; number: number | null }) {
+  db.run('UPDATE players SET name = ?, number = ? WHERE id = ?', [fields.name, fields.number, id]);
+}
+
+export function updatePlayerOrder(db: Database, id: string, sortOrder: number) {
+  db.run('UPDATE players SET sort_order = ? WHERE id = ?', [sortOrder, id]);
 }
 
 export function insertEvent(db: Database, event: GameEvent) {
