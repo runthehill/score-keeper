@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { Sport, DefaultSquadPlayer } from '../types';
+import { v4 as uuid } from 'uuid';
+import type { Sport, SavedTeam, SavedTeamPlayer } from '../types';
 import { SPORTS, getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { useThemeContext } from '../hooks/useTheme';
@@ -8,13 +9,14 @@ import { listGames, listEvents, listPlayers } from '../db/queries';
 const APP_VERSION = __APP_VERSION__;
 import { downloadFile } from '../utils/export';
 import { clearDB } from '../db/init';
-import { loadSettings, saveSettings } from '../utils/settings';
+import { loadSettings, saveSettings, getSavedTeams, upsertSavedTeam, deleteSavedTeam } from '../utils/settings';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import IosInstallSheet from '../components/IosInstallSheet';
 import AppHeader from '../components/AppHeader';
 import { squadKit } from '../sports/kits';
 import ColorKitPicker from '../components/ColorKitPicker';
 import TeamKitChip from '../components/TeamKitChip';
+import PlayerRowsEditor, { type PlayerRowBase } from '../components/PlayerRowsEditor';
 import { Edit } from '../components/icons';
 
 const EYEBROW = 'text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3 mb-2.5';
@@ -42,12 +44,8 @@ export default function Settings() {
   const [settings, setSettings] = useState(loadSettings);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
-  const [editingSport, setEditingSport] = useState<Sport | null>(null);
-  const [squadName, setSquadName] = useState('');
-  const [squadPlayers, setSquadPlayers] = useState<DefaultSquadPlayer[]>([]);
-  const [newName, setNewName] = useState('');
-  const [newNumber, setNewNumber] = useState('');
-  const [squadKitColors, setSquadKitColors] = useState({ primary: '#15171C', secondary: '#FFFFFF' });
+  const [managingSport, setManagingSport] = useState<Sport | null>(null);
+  const [editing, setEditing] = useState<{ sport: Sport; team: SavedTeam } | null>(null);
   const [showKitPicker, setShowKitPicker] = useState(false);
   const { mode: installMode, promptInstall } = useInstallPrompt();
   const [showIosInstall, setShowIosInstall] = useState(false);
@@ -56,46 +54,28 @@ export default function Settings() {
     saveSettings(settings);
   }, [settings]);
 
-  const openSquadEditor = (sportId: Sport) => {
-    const squad = settings.squads[sportId];
-    const sportConfig = getSportConfig(sportId);
-    setEditingSport(sportId);
-    setSquadName(squad?.teamName ?? sportConfig.defaultTeamName);
-    setSquadPlayers(squad?.players ? [...squad.players] : []);
-    setSquadKitColors(squadKit(squad, sportId));
+  const newTeam = (): SavedTeam => ({ id: uuid(), teamName: '', players: [], primary: undefined, secondary: undefined });
+
+  const openEditor = (sport: Sport, team: SavedTeam) => {
+    setEditing({ sport, team });
     setShowKitPicker(false);
-    setNewName('');
-    setNewNumber('');
   };
 
-  const addSquadPlayer = () => {
-    if (!newName.trim()) return;
-    setSquadPlayers((p) => [...p, { name: newName.trim(), number: newNumber }]);
-    setNewName('');
-    setNewNumber('');
+  const patchEditing = (patch: Partial<SavedTeam>) =>
+    setEditing((e) => (e ? { ...e, team: { ...e.team, ...patch } } : e));
+
+  // Note: persistence is handled by the useEffect([settings]) above — keep these
+  // updaters pure (no saveSettings side effect inside setSettings, which can run
+  // twice under StrictMode).
+  const saveEditing = () => {
+    if (!editing || !editing.team.teamName.trim()) return;
+    const team: SavedTeam = { ...editing.team, teamName: editing.team.teamName.trim() };
+    setSettings((s) => upsertSavedTeam(s, editing.sport, team));
+    setEditing(null);
   };
 
-  const removeSquadPlayer = (index: number) => {
-    setSquadPlayers((p) => p.filter((_, i) => i !== index));
-  };
-
-  const saveSquad = () => {
-    if (!editingSport) return;
-    setSettings((s) => ({
-      ...s,
-      squads: { ...s.squads, [editingSport]: { teamName: squadName.trim(), players: squadPlayers, primary: squadKitColors.primary, secondary: squadKitColors.secondary } },
-    }));
-    setEditingSport(null);
-  };
-
-  const deleteSquad = () => {
-    if (!editingSport) return;
-    setSettings((s) => {
-      const squads = { ...s.squads };
-      delete squads[editingSport];
-      return { ...s, squads };
-    });
-    setEditingSport(null);
+  const removeTeam = (sport: Sport, teamId: string) => {
+    setSettings((s) => deleteSavedTeam(s, sport, teamId));
   };
 
   const setPeriodLength = (sportId: Sport, value: string) => {
@@ -159,25 +139,23 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Default teams (stored internally as `squads` — label-only rename, no migration) */}
+      {/* Saved teams */}
       <section>
-        <h2 className={EYEBROW}>Default teams</h2>
-        <p className="text-xs text-txt-3 mb-2.5">Save a team per sport — name, colours, and optional players. Load it in one tap when starting a game.</p>
+        <h2 className={EYEBROW}>Saved teams</h2>
+        <p className="text-xs text-txt-3 mb-2.5">Save any team — name, colours, and optional players. Load them in one tap when starting a game.</p>
         <div className="space-y-2">
           {SPORTS.map((sport) => {
-            const squad = settings.squads[sport.id];
-            const kit = squadKit(squad, sport.id);
+            const teams = getSavedTeams(settings, sport.id);
             return (
-              <button key={sport.id} type="button" onClick={() => openSquadEditor(sport.id)} className="w-full bg-surface border border-line rounded-2xl px-4 py-3 flex items-center justify-between press">
+              <button key={sport.id} type="button" onClick={() => setManagingSport(sport.id)} className="w-full bg-surface border border-line rounded-2xl px-4 py-3 flex items-center justify-between press">
                 <div className="flex items-center gap-3">
                   <span className="text-xl" aria-hidden="true">{sport.icon}</span>
-                  <TeamKitChip primary={kit.primary} secondary={kit.secondary} size={18} radius={5} />
                   <div className="text-left">
                     <p className="text-sm font-semibold text-txt">{sport.name}</p>
-                    <p className="text-xs text-txt-3">{squad ? `${squad.teamName} — ${squad.players.length > 0 ? `${squad.players.length} players` : 'Name & colours'}` : 'No team set'}</p>
+                    <p className="text-xs text-txt-3">{teams.length > 0 ? `${teams.length} saved team${teams.length === 1 ? '' : 's'}` : 'No teams yet'}</p>
                   </div>
                 </div>
-                <span className="text-txt-3 text-sm">{squad ? 'Edit' : '+'}</span>
+                <span className="text-txt-3 text-sm">Manage</span>
               </button>
             );
           })}
@@ -245,31 +223,53 @@ export default function Settings() {
         <a href="https://github.com/runthehill/score-keeper" target="_blank" rel="noopener noreferrer" className="text-xs text-txt-2 underline">GitHub</a>
       </div>
 
-      {/* Team editor modal (state/handlers keep the internal `squad` naming) */}
-      {editingSport && (
-        <>
-        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setEditingSport(null)}>
+      {/* Per-sport saved-team list */}
+      {managingSport && !editing && (
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setManagingSport(null)}>
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-extrabold text-txt flex items-center gap-2">
-                <span aria-hidden="true">{getSportConfig(editingSport).icon}</span> {getSportConfig(editingSport).name} team
-              </h3>
-              {settings.squads[editingSport] && (
-                <button type="button" onClick={deleteSquad} className="text-xs text-danger">Clear</button>
+            <h3 className="text-lg font-extrabold text-txt flex items-center gap-2 mb-4">
+              <span aria-hidden="true">{getSportConfig(managingSport).icon}</span> {getSportConfig(managingSport).name} teams
+            </h3>
+            <div className="space-y-2">
+              {getSavedTeams(settings, managingSport).map((t) => {
+                const kit = squadKit(t, managingSport);
+                return (
+                  <div key={t.id} className="flex items-center gap-2 bg-surface-2 border border-line rounded-xl px-3 py-2.5">
+                    <TeamKitChip primary={kit.primary} secondary={kit.secondary} size={18} radius={5} />
+                    <button type="button" onClick={() => openEditor(managingSport, t)} className="flex-1 min-w-0 text-left press">
+                      <p className="text-sm font-semibold text-txt truncate">{t.teamName}</p>
+                      <p className="text-xs text-txt-3">{t.players.length > 0 ? `${t.players.length} player${t.players.length === 1 ? '' : 's'}` : 'Name & colours'}</p>
+                    </button>
+                    <button type="button" onClick={() => removeTeam(managingSport, t.id)} className="shrink-0 text-xs text-danger px-2 py-1" aria-label={`Delete ${t.teamName}`}>Delete</button>
+                  </div>
+                );
+              })}
+              {getSavedTeams(settings, managingSport).length === 0 && (
+                <p className="text-xs text-txt-3 text-center py-2">No teams saved yet</p>
               )}
             </div>
+            <button type="button" onClick={() => openEditor(managingSport, newTeam())} className="w-full mt-3 py-3 bg-surface-2 border border-line rounded-xl text-sm font-semibold text-txt-2 press">+ New team</button>
+            <button type="button" onClick={() => setManagingSport(null)} className="w-full mt-2 py-3 text-center text-sm text-txt-3">Done</button>
+          </div>
+        </div>
+      )}
+
+      {/* Team editor */}
+      {editing && (
+        <>
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setEditing(null)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative w-full bg-surface rounded-t-2xl border-t border-line p-4 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-extrabold text-txt flex items-center gap-2 mb-4">
+              <span aria-hidden="true">{getSportConfig(editing.sport).icon}</span> {getSportConfig(editing.sport).name} team
+            </h3>
 
             <div className="space-y-3">
               <div>
                 <label className="text-xs text-txt-3 mb-1 block">Kit colours</label>
-                <button
-                  type="button"
-                  onClick={() => setShowKitPicker(true)}
-                  aria-label="Choose team kit"
-                  className="relative inline-block press"
-                >
-                  <TeamKitChip primary={squadKitColors.primary} secondary={squadKitColors.secondary} size={42} radius={12} />
+                <button type="button" onClick={() => setShowKitPicker(true)} aria-label="Choose team kit" className="relative inline-block press">
+                  <TeamKitChip primary={squadKit(editing.team, editing.sport).primary} secondary={squadKit(editing.team, editing.sport).secondary} size={42} radius={12} />
                   <span className="absolute -right-1 -bottom-1 w-[18px] h-[18px] rounded-full bg-txt text-bg grid place-items-center">
                     <Edit size={11} />
                   </span>
@@ -277,43 +277,30 @@ export default function Settings() {
               </div>
 
               <div>
-                <label htmlFor="squad-team-name" className="text-xs text-txt-3 mb-1 block">Team name</label>
-                <input id="squad-team-name" type="text" value={squadName} onChange={(e) => setSquadName(e.target.value)} placeholder="e.g. Sligo All Stars" className={INPUT} />
+                <label htmlFor="team-name" className="text-xs text-txt-3 mb-1 block">Team name</label>
+                <input id="team-name" aria-label="Team name" type="text" value={editing.team.teamName} onChange={(e) => patchEditing({ teamName: e.target.value })} placeholder="e.g. Coolera U12s" className={INPUT} />
               </div>
 
               <div>
                 <label className="text-xs text-txt-3 mb-1 block">Players</label>
-                <div className="flex gap-2 mb-2">
-                  <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Player name" className={`${INPUT} min-w-0 flex-1`} onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()} />
-                  <input type="number" value={newNumber} onChange={(e) => setNewNumber(e.target.value)} placeholder="#" className="w-16 shrink-0 bg-surface-2 border border-line rounded-xl px-2 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3" onKeyDown={(e) => e.key === 'Enter' && addSquadPlayer()} />
-                  <button type="button" onClick={addSquadPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">Add</button>
-                </div>
-                <div className="space-y-1">
-                  {squadPlayers.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between bg-surface-2 border border-line rounded-xl px-3 py-2">
-                      <span className="text-sm text-txt">
-                        {p.number && <span className="text-txt-3 mr-2">#{p.number}</span>}
-                        {p.name}
-                      </span>
-                      <button type="button" onClick={() => removeSquadPlayer(i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>✕</button>
-                    </div>
-                  ))}
-                  {squadPlayers.length === 0 && <p className="text-xs text-txt-3 text-center py-2">No players added yet</p>}
-                </div>
+                <PlayerRowsEditor
+                  players={editing.team.players as PlayerRowBase[]}
+                  onChange={(rows) => patchEditing({ players: rows as SavedTeamPlayer[] })}
+                />
               </div>
             </div>
 
             <div className="flex gap-3 mt-4">
-              <button type="button" onClick={() => setEditingSport(null)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
-              <button type="button" onClick={saveSquad} disabled={!squadName.trim()} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-40 press">Save team</button>
+              <button type="button" onClick={() => setEditing(null)} className="flex-1 py-3 border border-line rounded-xl text-sm font-medium text-txt-2 press">Cancel</button>
+              <button type="button" onClick={saveEditing} disabled={!editing.team.teamName.trim()} className="flex-1 py-3 bg-txt text-bg rounded-xl text-sm font-bold disabled:opacity-40 press">Save team</button>
             </div>
           </div>
         </div>
         {showKitPicker && (
           <ColorKitPicker
-            team={squadName || getSportConfig(editingSport).name}
-            value={squadKitColors}
-            onChange={(kit) => setSquadKitColors(kit)}
+            team={editing.team.teamName || getSportConfig(editing.sport).name}
+            value={squadKit(editing.team, editing.sport)}
+            onChange={(kit) => patchEditing({ primary: kit.primary, secondary: kit.secondary })}
             onClose={() => setShowKitPicker(false)}
           />
         )}

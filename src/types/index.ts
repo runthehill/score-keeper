@@ -34,6 +34,7 @@ export interface Player {
   name: string;
   number: number | null;
   status: PlayerStatus;
+  sort_order?: number;
 }
 
 export interface GameEvent {
@@ -76,6 +77,19 @@ export interface DefaultSquadPlayer {
 export interface DefaultSquad {
   teamName: string;
   players: DefaultSquadPlayer[];
+  primary?: string;
+  secondary?: string;
+}
+
+export interface SavedTeamPlayer {
+  name: string;
+  number: string;
+}
+
+export interface SavedTeam {
+  id: string;
+  teamName: string;
+  players: SavedTeamPlayer[];
   primary?: string;
   secondary?: string;
 }

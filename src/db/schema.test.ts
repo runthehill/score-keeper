@@ -36,6 +36,21 @@ describe('schema team-colour migration', () => {
   });
 });
 
+describe('schema player sort_order migration', () => {
+  it('adds players.sort_order defaulting to 0 for legacy rows', () => {
+    const db = new SQL.Database();
+    db.run(`CREATE TABLE players (id TEXT PRIMARY KEY, game_id TEXT NOT NULL, team TEXT NOT NULL, name TEXT NOT NULL, number INTEGER, status TEXT NOT NULL DEFAULT 'active')`);
+    db.run("INSERT INTO players (id, game_id, team, name, status) VALUES ('p','g','home','Old','active')");
+    createTables(db); // runs the migration
+    const stmt = db.prepare('SELECT sort_order FROM players WHERE id = ?');
+    stmt.bind(['p']);
+    stmt.step();
+    const row = stmt.getAsObject();
+    stmt.free();
+    expect(row.sort_order).toBe(0);
+  });
+});
+
 describe('schema clock migration', () => {
   function clockOf(db: Database, id: string) {
     const stmt = db.prepare('SELECT clock_running, clock_base_ms, clock_anchor, clock_active, current_period, current_period_label FROM games WHERE id = ?');
