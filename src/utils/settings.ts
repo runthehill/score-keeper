@@ -1,11 +1,37 @@
-import type { Sport, DefaultSquad } from '../types';
+import type { Sport, DefaultSquad, SavedTeam } from '../types';
 
 export const SETTINGS_KEY = 'score-keeper-settings';
 
 export interface AppSettings {
   darkMode: boolean;
-  squads: Partial<Record<Sport, DefaultSquad>>;
+  squads?: Partial<Record<Sport, DefaultSquad>>; // legacy — migrated into savedTeams on load
+  savedTeams?: Partial<Record<Sport, SavedTeam[]>>;
   periodLengths?: Partial<Record<Sport, number>>;
+}
+
+// Convert any legacy single-squad-per-sport entries into one-element savedTeams
+// arrays. Only fills a sport that has no savedTeams yet, so it never clobbers
+// teams saved by the current app. Deterministic id keeps it stable across loads
+// until the next saveSettings persists it.
+function migrateSquads(s: AppSettings): AppSettings {
+  const squads = s.squads ?? {};
+  const savedTeams = { ...(s.savedTeams ?? {}) };
+  let changed = false;
+  for (const key of Object.keys(squads) as Sport[]) {
+    const squad = squads[key];
+    const existing = savedTeams[key];
+    if (squad && !(existing && existing.length)) {
+      savedTeams[key] = [{
+        id: `legacy-${key}`,
+        teamName: squad.teamName,
+        players: squad.players,
+        primary: squad.primary,
+        secondary: squad.secondary,
+      }];
+      changed = true;
+    }
+  }
+  return changed ? { ...s, savedTeams } : s;
 }
 
 export function loadSettings(): AppSettings {
@@ -13,15 +39,32 @@ export function loadSettings(): AppSettings {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Older stored settings may still carry the removed default team name fields — harmless; ignored.
-      return { darkMode: true, squads: {}, periodLengths: {}, ...parsed };
+      return migrateSquads({ darkMode: true, savedTeams: {}, periodLengths: {}, ...parsed });
     }
   } catch {
     // Ignore malformed JSON or unavailable localStorage; fall back to defaults below.
   }
-  return { darkMode: true, squads: {}, periodLengths: {} };
+  return { darkMode: true, savedTeams: {}, periodLengths: {} };
 }
 
 export function saveSettings(settings: AppSettings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+export function getSavedTeams(settings: AppSettings, sport: Sport): SavedTeam[] {
+  return settings.savedTeams?.[sport] ?? [];
+}
+
+export function upsertSavedTeam(settings: AppSettings, sport: Sport, team: SavedTeam): AppSettings {
+  const list = settings.savedTeams?.[sport] ?? [];
+  const idx = list.findIndex(
+    (t) => t.id === team.id || t.teamName.toLowerCase() === team.teamName.toLowerCase()
+  );
+  const next = idx >= 0 ? list.map((t, i) => (i === idx ? team : t)) : [...list, team];
+  return { ...settings, savedTeams: { ...(settings.savedTeams ?? {}), [sport]: next } };
+}
+
+export function deleteSavedTeam(settings: AppSettings, sport: Sport, teamId: string): AppSettings {
+  const list = (settings.savedTeams?.[sport] ?? []).filter((t) => t.id !== teamId);
+  return { ...settings, savedTeams: { ...(settings.savedTeams ?? {}), [sport]: list } };
 }

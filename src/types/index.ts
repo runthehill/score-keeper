@@ -81,6 +81,19 @@ export interface DefaultSquad {
   secondary?: string;
 }
 
+export interface SavedTeamPlayer {
+  name: string;
+  number: string;
+}
+
+export interface SavedTeam {
+  id: string;
+  teamName: string;
+  players: SavedTeamPlayer[];
+  primary?: string;
+  secondary?: string;
+}
+
 export interface PeriodConfig {
   count: number;
   name: string;
