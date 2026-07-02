@@ -59,7 +59,10 @@ export const SPORTS: SportConfig[] = [
       { type: 'goal', label: 'Goal', points: 3, icon: '🥅', color: '#22c55e' },
       { type: 'wide', label: 'Wide', points: 0, icon: '🚩' },
     ],
-    statEvents: [{ type: 'penalty', label: 'Penalty', icon: '🎯' }],
+    statEvents: [
+      { type: 'penalty', label: 'Penalty', icon: '🎯' },
+      { type: '45', label: "45'", icon: '🦵' },
+    ],
     cardEvents: [
       { type: 'card_yellow', label: 'Yellow Card', color: '#facc15' },
       { type: 'card_black', label: 'Black Card', color: '#1a1a2e' },
@@ -84,6 +87,7 @@ export const SPORTS: SportConfig[] = [
       { type: 'three_pointer', label: '3PT', points: 3, icon: '🎯' },
     ],
     statEvents: [
+      { type: 'assist', label: 'Assist', icon: '👟' },
       { type: 'rebound', label: 'Rebound', icon: '📊' },
       { type: 'steal', label: 'Steal', icon: '🤚' },
       { type: 'foul', label: 'Foul', icon: '⚠️' },

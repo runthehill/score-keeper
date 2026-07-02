@@ -114,6 +114,18 @@ describe('sport configs — stat tracking', () => {
   it('Gaelic tracks a penalty stat', () => {
     expect(getSportConfig('gaelic_football').statEvents.map((s) => s.type)).toContain('penalty');
   });
+  it('Gaelic tracks a 45 stat alongside the penalty', () => {
+    const types = getSportConfig('gaelic_football').statEvents.map((s) => s.type);
+    expect(types).toEqual(expect.arrayContaining(['penalty', '45']));
+  });
+  it("Gaelic 45 is labelled 45'", () => {
+    const forty5 = getSportConfig('gaelic_football').statEvents.find((s) => s.type === '45');
+    expect(forty5?.label).toBe("45'");
+  });
+  it('Basketball tracks an assist stat', () => {
+    const types = getSportConfig('basketball').statEvents.map((s) => s.type);
+    expect(types).toContain('assist');
+  });
   it('Soccer tracks assist, throw-in, corner, off-side, penalty', () => {
     const types = getSportConfig('soccer').statEvents.map((s) => s.type);
     expect(types).toEqual(expect.arrayContaining(['assist', 'throw_in', 'corner', 'offside', 'penalty']));

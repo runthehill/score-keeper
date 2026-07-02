@@ -5,6 +5,7 @@ import { createTables } from './schema';
 import {
   insertGame, getGame, listGames, updateGameScore, endGame,
   insertPlayer, listPlayers, updatePlayerStatus,
+  updatePlayer, updatePlayerOrder, updateGameTeamNames,
   insertEvent, listEvents, deleteEvent, getLastEvent,
   updateClock,
 } from './queries';
@@ -89,6 +90,41 @@ describe('players', () => {
     insertPlayer(db, { id: 'p1', game_id: 'g1', team: 'home', name: 'John', number: 10, status: 'active' });
     updatePlayerStatus(db, 'p1', 'subbed_off');
     expect(listPlayers(db, 'g1')[0].status).toBe('subbed_off');
+  });
+});
+
+describe('player ordering and edits', () => {
+  beforeEach(() => {
+    insertGame(db, { id: 'g1', sport: 'soccer', home_team: 'A', away_team: 'B', started_at: '2026-04-02T10:00:00.000Z' });
+  });
+
+  it('lists players in sort_order, not insertion order', () => {
+    insertPlayer(db, { id: 'p1', game_id: 'g1', team: 'home', name: 'First', number: null, status: 'active', sort_order: 2 });
+    insertPlayer(db, { id: 'p2', game_id: 'g1', team: 'home', name: 'Second', number: null, status: 'active', sort_order: 0 });
+    insertPlayer(db, { id: 'p3', game_id: 'g1', team: 'home', name: 'Third', number: null, status: 'active', sort_order: 1 });
+    expect(listPlayers(db, 'g1', 'home').map((p) => p.name)).toEqual(['Second', 'Third', 'First']);
+  });
+
+  it('updates a player name and number', () => {
+    insertPlayer(db, { id: 'p1', game_id: 'g1', team: 'home', name: 'Jon', number: 9, status: 'active', sort_order: 0 });
+    updatePlayer(db, 'p1', { name: 'Jonathan', number: 10 });
+    const p = listPlayers(db, 'g1', 'home')[0];
+    expect(p.name).toBe('Jonathan');
+    expect(p.number).toBe(10);
+  });
+
+  it('updates a player sort_order', () => {
+    insertPlayer(db, { id: 'p1', game_id: 'g1', team: 'home', name: 'A', number: null, status: 'active', sort_order: 0 });
+    insertPlayer(db, { id: 'p2', game_id: 'g1', team: 'home', name: 'B', number: null, status: 'active', sort_order: 1 });
+    updatePlayerOrder(db, 'p1', 5);
+    expect(listPlayers(db, 'g1', 'home').map((p) => p.name)).toEqual(['B', 'A']);
+  });
+
+  it('renames both teams on a game', () => {
+    updateGameTeamNames(db, 'g1', 'Coolera', 'Strandhill');
+    const g = getGame(db, 'g1')!;
+    expect(g.home_team).toBe('Coolera');
+    expect(g.away_team).toBe('Strandhill');
   });
 });
 
