@@ -1,31 +1,27 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { v4 as uuid } from 'uuid';
-import type { Sport, Player, Team, GameMetadata, PeriodConfig, Game } from '../types';
+import type { Sport, Player, Team, GameMetadata, PeriodConfig, Game, SavedTeam } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useDB } from '../hooks/useDB';
 import { insertGame, insertPlayer } from '../db/queries';
-import { loadSettings } from '../utils/settings';
+import { loadSettings, saveSettings, getSavedTeams, upsertSavedTeam } from '../utils/settings';
 import { DEFAULT_HOME_KITS, DEFAULT_AWAY_KIT, squadKit } from '../sports/kits';
 import Scoreboard from '../components/Scoreboard';
 import TeamKitChip from '../components/TeamKitChip';
 import ColorKitPicker from '../components/ColorKitPicker';
-import { ChevronLeft, Whistle, Edit } from '../components/icons';
-
-interface DraftPlayer {
-  name: string;
-  number: string;
-  status: 'active' | 'bench';
-}
+import PlayerRowsEditor, { type PlayerRowBase } from '../components/PlayerRowsEditor';
+import SavedTeamPicker from '../components/SavedTeamPicker';
+import { ChevronLeft, Whistle, Edit, Star } from '../components/icons';
 
 export default function GameSetup() {
   const { sportId } = useParams<{ sportId: string }>();
   const navigate = useNavigate();
   const { db, persist } = useDB();
   const sport = getSportConfig(sportId as Sport);
-  const appSettings = loadSettings();
-  const defaultSquad = appSettings.squads[sport.id];
-  const defaultLength = appSettings.periodLengths?.[sport.id];
+  const [settings, setSettings] = useState(loadSettings);
+  const savedTeams = getSavedTeams(settings, sport.id);
+  const defaultLength = settings.periodLengths?.[sport.id];
 
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
@@ -33,41 +29,39 @@ export default function GameSetup() {
   const [awayKit, setAwayKit] = useState(DEFAULT_AWAY_KIT);
   const [picker, setPicker] = useState<Team | null>(null);
   const [showPlayers, setShowPlayers] = useState(false);
-  const [homePlayers, setHomePlayers] = useState<DraftPlayer[]>([]);
-  const [awayPlayers, setAwayPlayers] = useState<DraftPlayer[]>([]);
-  const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerNumber, setNewPlayerNumber] = useState('');
-  const [addingFor, setAddingFor] = useState<Team>('home');
+  const [homePlayers, setHomePlayers] = useState<PlayerRowBase[]>([]);
+  const [awayPlayers, setAwayPlayers] = useState<PlayerRowBase[]>([]);
+  const [teamPicker, setTeamPicker] = useState<Team | null>(null);
+  const [savedMsg, setSavedMsg] = useState<Team | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodConfig>(sport.periods);
   const [periodLength, setPeriodLength] = useState(defaultLength ? String(defaultLength) : '');
 
-  const loadSquad = (team: Team) => {
-    if (!defaultSquad) return;
-    const kit = squadKit(defaultSquad, sport.id);
-    if (team === 'home') {
-      setHomeTeam(defaultSquad.teamName);
-      setHomePlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
-      setHomeKit(kit);
-    } else {
-      setAwayTeam(defaultSquad.teamName);
-      setAwayPlayers(defaultSquad.players.map((p) => ({ ...p, status: 'active' as const })));
-      setAwayKit(kit);
-    }
+  const applyTeam = (team: Team, saved: SavedTeam) => {
+    const kit = squadKit(saved, sport.id);
+    const rows: PlayerRowBase[] = saved.players.map((p) => ({ name: p.name, number: p.number }));
+    if (team === 'home') { setHomeTeam(saved.teamName); setHomePlayers(rows); setHomeKit(kit); }
+    else { setAwayTeam(saved.teamName); setAwayPlayers(rows); setAwayKit(kit); }
     setShowPlayers(true);
   };
 
-  const addPlayer = () => {
-    if (!newPlayerName.trim()) return;
-    const player: DraftPlayer = { name: newPlayerName.trim(), number: newPlayerNumber, status: 'active' };
-    if (addingFor === 'home') setHomePlayers((p) => [...p, player]);
-    else setAwayPlayers((p) => [...p, player]);
-    setNewPlayerName('');
-    setNewPlayerNumber('');
-  };
-
-  const removePlayer = (team: Team, index: number) => {
-    if (team === 'home') setHomePlayers((p) => p.filter((_, i) => i !== index));
-    else setAwayPlayers((p) => p.filter((_, i) => i !== index));
+  const saveTeam = (team: Team) => {
+    const name = (team === 'home' ? homeTeam : awayTeam).trim();
+    if (!name) return;
+    const kit = team === 'home' ? homeKit : awayKit;
+    const rows = team === 'home' ? homePlayers : awayPlayers;
+    const existing = savedTeams.find((t) => t.teamName.toLowerCase() === name.toLowerCase());
+    const saved: SavedTeam = {
+      id: existing?.id ?? uuid(),
+      teamName: name,
+      players: rows.filter((r) => r.name.trim()).map((r) => ({ name: r.name.trim(), number: r.number })),
+      primary: kit.primary,
+      secondary: kit.secondary,
+    };
+    const next = upsertSavedTeam(settings, sport.id, saved);
+    setSettings(next);
+    saveSettings(next);
+    setSavedMsg(team);
+    setTimeout(() => setSavedMsg((t) => (t === team ? null : t)), 1600);
   };
 
   const startGame = () => {
@@ -92,15 +86,16 @@ export default function GameSetup() {
       away_secondary: awayKit.secondary,
     });
 
-    const savePlayers = (drafts: DraftPlayer[], team: Team) => {
-      drafts.forEach((d) => {
+    const savePlayers = (rows: PlayerRowBase[], team: Team) => {
+      rows.filter((r) => r.name.trim()).forEach((r, i) => {
         const player: Player = {
           id: uuid(),
           game_id: gameId,
           team,
-          name: d.name,
-          number: d.number ? parseInt(d.number, 10) : null,
-          status: d.status,
+          name: r.name.trim(),
+          number: r.number ? parseInt(r.number, 10) : null,
+          status: 'active',
+          sort_order: i,
         };
         insertPlayer(db, player);
       });
@@ -129,7 +124,6 @@ export default function GameSetup() {
   };
 
   const eyebrow = 'text-[11px] font-extrabold uppercase tracking-[0.08em] text-txt-3';
-  const inputClass = 'w-full bg-surface-2 border border-line rounded-xl px-4 py-3 text-txt placeholder-txt-3 focus:outline-none focus:border-txt-3';
 
   const teamField = (label: string, which: Team) => {
     const name = which === 'home' ? homeTeam : awayTeam;
@@ -153,17 +147,40 @@ export default function GameSetup() {
               placeholder={which === 'home' ? sport.defaultTeamName : 'Opponent'}
               className="min-w-0 flex-1 bg-transparent text-txt font-bold text-[15.5px] placeholder-txt-3 focus:outline-none -tracking-[0.01em]"
             />
-            {defaultSquad && (
+            {savedTeams.length > 0 && (
               <button
                 type="button"
-                onClick={() => loadSquad(which)}
+                onClick={() => setTeamPicker(which)}
                 className="shrink-0 bg-surface-2 border border-line rounded-lg px-2.5 py-1 text-[11px] font-semibold text-txt-2 press"
               >
-                Use {defaultSquad.teamName}
+                Use saved ▾
               </button>
             )}
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const playerBlock = (which: Team) => {
+    const label = which === 'home' ? (homeTeam || 'Home') : (awayTeam || 'Away');
+    const rows = which === 'home' ? homePlayers : awayPlayers;
+    const setRows = which === 'home' ? setHomePlayers : setAwayPlayers;
+    const name = which === 'home' ? homeTeam : awayTeam;
+    return (
+      <div key={which}>
+        <div className="flex items-center justify-between mb-2">
+          <p className={eyebrow}>{label} players</p>
+          <button
+            type="button"
+            onClick={() => saveTeam(which)}
+            disabled={!name.trim()}
+            className="shrink-0 flex items-center gap-1 bg-surface-2 border border-line rounded-lg px-2.5 py-1 text-[11px] font-semibold text-txt-2 disabled:opacity-40 press"
+          >
+            <Star size={12} /> {savedMsg === which ? 'Saved ✓' : 'Save team'}
+          </button>
+        </div>
+        <PlayerRowsEditor players={rows} onChange={setRows} />
       </div>
     );
   };
@@ -244,69 +261,9 @@ export default function GameSetup() {
           + Add players (optional)
         </button>
       ) : (
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setAddingFor('home')}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'home' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
-            >
-              {homeTeam || 'Home'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAddingFor('away')}
-              className={`flex-1 py-2 rounded-xl text-sm font-semibold press ${addingFor === 'away' ? 'bg-txt text-bg' : 'bg-surface-2 border border-line text-txt-2'}`}
-            >
-              {awayTeam || 'Away'}
-            </button>
-          </div>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              placeholder="Player name"
-              className={`${inputClass} min-w-0 flex-1`}
-              onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-            />
-            <input
-              type="number"
-              value={newPlayerNumber}
-              onChange={(e) => setNewPlayerNumber(e.target.value)}
-              placeholder="#"
-              className="w-16 shrink-0 bg-surface-2 border border-line rounded-xl px-2 py-3 text-txt text-center placeholder-txt-3 focus:outline-none focus:border-txt-3"
-              onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-            />
-            <button type="button" onClick={addPlayer} className="shrink-0 bg-txt text-bg rounded-xl px-4 font-semibold press">
-              Add
-            </button>
-          </div>
-
-          {[
-            { team: 'home' as Team, players: homePlayers, label: homeTeam || 'Home' },
-            { team: 'away' as Team, players: awayPlayers, label: awayTeam || 'Away' },
-          ].map(({ team, players, label }) =>
-            players.length > 0 ? (
-              <div key={team}>
-                <p className={`${eyebrow} mb-2`}>{label}</p>
-                <div className="space-y-1">
-                  {players.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between bg-surface-2 border border-line rounded-xl px-3 py-2">
-                      <span className="text-sm text-txt">
-                        {p.number && <span className="text-txt-3 mr-2">#{p.number}</span>}
-                        {p.name}
-                      </span>
-                      <button type="button" onClick={() => removePlayer(team, i)} className="text-txt-3 text-xs" aria-label={`Remove ${p.name}`}>
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          )}
+        <div className="space-y-5">
+          {playerBlock('home')}
+          {playerBlock('away')}
         </div>
       )}
 
@@ -327,6 +284,16 @@ export default function GameSetup() {
           value={picker === 'home' ? homeKit : awayKit}
           onChange={(kit) => (picker === 'home' ? setHomeKit(kit) : setAwayKit(kit))}
           onClose={() => setPicker(null)}
+        />
+      )}
+
+      {/* Saved team picker */}
+      {teamPicker && (
+        <SavedTeamPicker
+          teams={savedTeams}
+          sportId={sport.id}
+          onSelect={(t) => { applyTeam(teamPicker, t); setTeamPicker(null); }}
+          onClose={() => setTeamPicker(null)}
         />
       )}
     </div>

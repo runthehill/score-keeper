@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.25] - 2026-07-02
+
+### Added
+- Edit and reorder players when setting up a game — correct a name or number in place, and move players up/down (no more remove-and-re-add).
+- In-game Edit button: during a match you can now correct a team name or kit colours, and add or fix a player's details.
+- Saved-teams library: save any team you build at setup (your squad and recurring opponents) and reuse it in one tap; manage multiple teams per sport in Settings. Upgrades the old single "default team" (existing defaults are migrated automatically).
+- Gaelic Football: record 45's, sharing the actions row with the Penalty button.
+- Basketball: added an Assist button.
+
 ## [1.1.24] - 2026-06-03
 
 ### Added

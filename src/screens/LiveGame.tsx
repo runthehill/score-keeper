@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { v4 as uuid } from 'uuid';
 import type { Team } from '../types';
 import { getSportConfig } from '../sports/configs';
 import { useGame } from '../hooks/useGame';
 import { useDB } from '../hooks/useDB';
 import ClockEditModal from '../components/ClockEditModal';
-import { endGame } from '../db/queries';
+import { endGame, updateGameTeamNames, updateGameColors, updatePlayer, updatePlayerOrder, insertPlayer } from '../db/queries';
 import Scoreboard from '../components/Scoreboard';
 import ScoringRow from '../components/ScoringRow';
 import Timer from '../components/Timer';
@@ -14,8 +15,9 @@ import ActionsRow from '../components/ActionsRow';
 import PlayerPicker from '../components/PlayerPicker';
 import SubstitutionFlow from '../components/SubstitutionFlow';
 import ShareSheet from '../components/ShareSheet';
+import EditGameSheet from '../components/EditGameSheet';
 import TeamKitChip from '../components/TeamKitChip';
-import { ChevronLeft } from '../components/icons';
+import { ChevronLeft, Edit } from '../components/icons';
 
 export default function LiveGame() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -23,7 +25,7 @@ export default function LiveGame() {
   const { db, persist } = useDB();
   const {
     game, events, players, currentPeriod, periodCount, periodName, periodLengthMinutes,
-    currentPeriodLabel, addEvent, undoLastEvent, advancePeriod, substitute,
+    currentPeriodLabel, addEvent, undoLastEvent, advancePeriod, substitute, reload,
     liveSeconds, clockRunning, clockIsOvertime, toggleClock, setClockSeconds,
   } = useGame(gameId!);
 
@@ -42,6 +44,7 @@ export default function LiveGame() {
   const [showPeriodConfirm, setShowPeriodConfirm] = useState(false);
   const [showClockEdit, setShowClockEdit] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [flash, setFlash] = useState<Team | null>(null);
 
   // Wake lock — keep screen on while scoring
@@ -195,6 +198,39 @@ export default function LiveGame() {
     navigate(`/summary/${gameId}`, { replace: true });
   }, [db, gameId, persist, navigate]);
 
+  const handleSaveEdit = useCallback(
+    (data: {
+      homeTeam: string; awayTeam: string;
+      homeKit: { primary: string; secondary: string };
+      awayKit: { primary: string; secondary: string };
+      homeRows: { id?: string; name: string; number: string }[];
+      awayRows: { id?: string; name: string; number: string }[];
+    }) => {
+      updateGameTeamNames(db, gameId!, data.homeTeam, data.awayTeam);
+      updateGameColors(db, gameId!, {
+        home_primary: data.homeKit.primary, home_secondary: data.homeKit.secondary,
+        away_primary: data.awayKit.primary, away_secondary: data.awayKit.secondary,
+      });
+      const applyRows = (rows: { id?: string; name: string; number: string }[], team: Team) => {
+        rows.filter((r) => r.name.trim()).forEach((r, i) => {
+          const number = r.number ? parseInt(r.number, 10) : null;
+          if (r.id) {
+            updatePlayer(db, r.id, { name: r.name.trim(), number });
+            updatePlayerOrder(db, r.id, i);
+          } else {
+            insertPlayer(db, { id: uuid(), game_id: gameId!, team, name: r.name.trim(), number, status: 'active', sort_order: i });
+          }
+        });
+      };
+      applyRows(data.homeRows, 'home');
+      applyRows(data.awayRows, 'away');
+      persist();
+      reload();
+      setShowEdit(false);
+    },
+    [db, gameId, persist, reload]
+  );
+
   if (!game || !sport) {
     return <div className="p-4 text-txt-3">Loading game...</div>;
   }
@@ -225,9 +261,19 @@ export default function LiveGame() {
             {sport.name}
           </span>
         </div>
-        <span className="text-xs text-txt-3">
-          {currentPeriodLabel ? currentPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-txt-3">
+            {currentPeriodLabel ? currentPeriodLabel : `${periodName} ${currentPeriod} of ${periodCount}`}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowEdit(true)}
+            aria-label="Edit game"
+            className="w-8 h-8 shrink-0 grid place-items-center rounded-full bg-surface-2 border border-line text-txt press"
+          >
+            <Edit size={15} />
+          </button>
+        </div>
       </div>
 
       {/* Scoreboard */}
@@ -476,6 +522,15 @@ export default function LiveGame() {
             </div>
           </div>
         </div>
+      )}
+
+      {showEdit && (
+        <EditGameSheet
+          game={game}
+          players={players}
+          onSave={handleSaveEdit}
+          onClose={() => setShowEdit(false)}
+        />
       )}
 
       {showClockEdit && (
