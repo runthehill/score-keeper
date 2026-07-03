@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { SPORTS, getSportConfig } from './configs';
 
 describe('sport configs', () => {
-  it('defines exactly 4 sports', () => {
-    expect(SPORTS).toHaveLength(4);
+  it('defines exactly 6 sports', () => {
+    expect(SPORTS).toHaveLength(6);
   });
 
-  it.each(['rugby_union', 'soccer', 'gaelic_football', 'basketball'] as const)(
+  it.each(['rugby_union', 'soccer', 'gaelic_football', 'basketball', 'hurling', 'camogie'] as const)(
     '%s has valid config',
     (sportId) => {
       const config = getSportConfig(sportId);
@@ -142,5 +142,37 @@ describe('sport configs — stat tracking', () => {
   it('Soccer tracks assist, throw-in, corner, off-side, penalty', () => {
     const types = getSportConfig('soccer').statEvents.map((s) => s.type);
     expect(types).toEqual(expect.arrayContaining(['assist', 'throw_in', 'corner', 'offside', 'penalty']));
+  });
+});
+
+describe('hurling and camogie', () => {
+  it('hurling: point/goal/wide scoring, no two-pointer, split display', () => {
+    const h = getSportConfig('hurling');
+    expect(h.scoreDisplay).toBe('split');
+    expect(h.scoringEvents.map((e) => e.type)).toEqual(['point', 'goal', 'wide']);
+    expect(h.scoringEvents.find((e) => e.type === 'two_pointer')).toBeUndefined();
+  });
+  it('hurling: stats are penalty and 65 (not 45)', () => {
+    const types = getSportConfig('hurling').statEvents.map((s) => s.type);
+    expect(types).toEqual(expect.arrayContaining(['penalty', '65']));
+    expect(types).not.toContain('45');
+  });
+  it('hurling: has a black card', () => {
+    expect(getSportConfig('hurling').cardEvents.find((c) => c.type === 'card_black')).toBeDefined();
+  });
+  it('camogie: point/goal/wide scoring, no two-pointer, split display', () => {
+    const c = getSportConfig('camogie');
+    expect(c.scoreDisplay).toBe('split');
+    expect(c.scoringEvents.map((e) => e.type)).toEqual(['point', 'goal', 'wide']);
+    expect(c.scoringEvents.find((e) => e.type === 'two_pointer')).toBeUndefined();
+  });
+  it('camogie: stats are penalty and 45 (not 65)', () => {
+    const types = getSportConfig('camogie').statEvents.map((s) => s.type);
+    expect(types).toEqual(expect.arrayContaining(['penalty', '45']));
+    expect(types).not.toContain('65');
+  });
+  it('camogie: no black card (yellow and red only)', () => {
+    const cards = getSportConfig('camogie').cardEvents.map((c) => c.type);
+    expect(cards).toEqual(['card_yellow', 'card_red']);
   });
 });

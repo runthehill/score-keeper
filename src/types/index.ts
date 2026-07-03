@@ -1,4 +1,4 @@
-export type Sport = 'rugby_union' | 'soccer' | 'gaelic_football' | 'basketball';
+export type Sport = 'rugby_union' | 'soccer' | 'gaelic_football' | 'basketball' | 'hurling' | 'camogie';
 export type Team = 'home' | 'away';
 export type GameStatus = 'in_progress' | 'completed';
 export type PlayerStatus = 'active' | 'bench' | 'subbed_off';

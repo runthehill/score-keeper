@@ -7,6 +7,8 @@ const TINTS: Record<Sport, string> = {
   soccer: '#47b26c',
   gaelic_football: '#16245A',
   basketball: '#F25F1F',
+  hurling: '#1E63D6',
+  camogie: '#5B2A86',
 };
 
 interface Props {
