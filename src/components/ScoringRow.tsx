@@ -15,9 +15,10 @@ interface Props {
   isSplit: boolean;
   gameEvents: GameEvent[];
   onScore: (eventType: string, points: number) => void;
+  onMiss: (missType: string) => void;
 }
 
-export default function ScoringRow({ events, team, teamName, primary, secondary, score, isSplit, gameEvents, onScore }: Props) {
+export default function ScoringRow({ events, team, teamName, primary, secondary, score, isSplit, gameEvents, onScore, onMiss }: Props) {
   const { dark } = useThemeContext();
   const accent = teamAccent({ primary, secondary }, dark);
   const scoreText = isSplit ? formatGaelicScore(gameEvents, team) : String(score);
@@ -31,7 +32,13 @@ export default function ScoringRow({ events, team, teamName, primary, secondary,
       </div>
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${events.length}, minmax(0, 1fr))` }}>
         {events.map((event) => (
-          <ScoreButton key={event.type} event={event} accent={accent} onClick={() => onScore(event.type, event.points)} />
+          <ScoreButton
+            key={event.type}
+            event={event}
+            accent={accent}
+            onClick={() => onScore(event.type, event.points)}
+            onMiss={event.miss ? () => onMiss(event.miss!.type) : undefined}
+          />
         ))}
       </div>
     </div>

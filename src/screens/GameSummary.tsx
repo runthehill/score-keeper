@@ -11,6 +11,7 @@ import { buildShareModel, shareFilename } from '../utils/shareCard';
 import { exportShareCard } from '../utils/exportShareCard';
 import { exportGameCSV, exportGameJSON, downloadFile } from '../utils/export';
 import ShareCard from '../components/ShareCard';
+import BoxScore from '../components/BoxScore';
 import { ChevronLeft, Share } from '../components/icons';
 
 export default function GameSummary() {
@@ -23,6 +24,8 @@ export default function GameSummary() {
   const players = useMemo(() => (gameId ? listPlayers(db, gameId) : []), [db, gameId]);
   const cardRef = useRef<HTMLDivElement>(null);
   const [shareState, setShareState] = useState('');
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [boxShareState, setBoxShareState] = useState('');
 
   if (!game) {
     return <div className="p-4 text-txt-3">Game not found</div>;
@@ -75,6 +78,21 @@ export default function GameSummary() {
     }
   };
 
+  const handleShareBox = async () => {
+    if (!boxRef.current) return;
+    setBoxShareState('Preparing…');
+    try {
+      const outcome = await exportShareCard(
+        boxRef.current,
+        shareFilename(game.home_team, game.away_team).replace(/\.png$/, '-boxscore.png'),
+        { title: `${game.home_team} v ${game.away_team} — box score`, text: `${game.home_team} ${game.home_score} – ${game.away_score} ${game.away_team}` }
+      );
+      setBoxShareState(outcome === 'shared' ? 'Shared' : outcome === 'downloaded' ? 'Image saved' : outcome === 'cancelled' ? '' : "Couldn't create image");
+    } catch {
+      setBoxShareState("Couldn't create image");
+    }
+  };
+
   const handleExportCSV = () => downloadFile(exportGameCSV(game, events, players), `${game.home_team}-vs-${game.away_team}.csv`, 'text/csv');
   const handleExportJSON = () => downloadFile(exportGameJSON(game, events, players), `${game.home_team}-vs-${game.away_team}.json`, 'application/json');
 
@@ -113,8 +131,20 @@ export default function GameSummary() {
         </div>
       </section>
 
-      {/* Player stats */}
-      {playerStats.length > 0 && (
+      {/* Player stats / box score */}
+      {sport.id === 'basketball' && events.length > 0 ? (
+        <section>
+          <h2 className={eyebrow}>Box score</h2>
+          <BoxScore ref={boxRef} game={game} events={events} players={players} />
+          <button
+            type="button"
+            onClick={handleShareBox}
+            className="w-full mt-3 flex items-center justify-center gap-2 bg-surface-2 border border-line rounded-xl py-3 text-sm font-semibold text-txt-2 press"
+          >
+            <Share size={15} /> {boxShareState || 'Share box score'}
+          </button>
+        </section>
+      ) : playerStats.length > 0 ? (
         <section>
           <h2 className={eyebrow}>Player stats</h2>
           <div className="bg-surface border border-line rounded-2xl p-4 space-y-3">
@@ -134,7 +164,7 @@ export default function GameSummary() {
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       {/* Share */}
       <div>

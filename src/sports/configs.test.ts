@@ -60,7 +60,8 @@ describe('sport configs', () => {
 
   it('basketball has stat events for rebounds and steals', () => {
     const config = getSportConfig('basketball');
-    expect(config.statEvents.find((e) => e.type === 'rebound')).toBeDefined();
+    expect(config.statEvents.find((e) => e.type === 'off_rebound')).toBeDefined();
+    expect(config.statEvents.find((e) => e.type === 'def_rebound')).toBeDefined();
     expect(config.statEvents.find((e) => e.type === 'steal')).toBeDefined();
   });
 
@@ -118,13 +119,25 @@ describe('sport configs — stat tracking', () => {
     const types = getSportConfig('gaelic_football').statEvents.map((s) => s.type);
     expect(types).toEqual(expect.arrayContaining(['penalty', '45']));
   });
-  it("Gaelic 45 is labelled 45'", () => {
-    const forty5 = getSportConfig('gaelic_football').statEvents.find((s) => s.type === '45');
-    expect(forty5?.label).toBe("45'");
-  });
   it('Basketball tracks an assist stat', () => {
     const types = getSportConfig('basketball').statEvents.map((s) => s.type);
     expect(types).toContain('assist');
+  });
+  it("Gaelic 45 label is 45 (no prime)", () => {
+    const forty5 = getSportConfig('gaelic_football').statEvents.find((s) => s.type === '45');
+    expect(forty5?.label).toBe('45');
+  });
+  it('Basketball splits rebound into Oreb and Dreb, and has a turnover', () => {
+    const types = getSportConfig('basketball').statEvents.map((s) => s.type);
+    expect(types).toEqual(expect.arrayContaining(['off_rebound', 'def_rebound', 'turnover']));
+    expect(types).not.toContain('rebound');
+  });
+  it('Basketball scoring buttons carry miss descriptors', () => {
+    const cfg = getSportConfig('basketball');
+    const miss = (t: string) => cfg.scoringEvents.find((e) => e.type === t)?.miss;
+    expect(miss('free_throw')).toEqual({ type: 'free_throw_miss', label: 'Missed FT' });
+    expect(miss('field_goal')).toEqual({ type: 'field_goal_miss', label: 'Missed 2PT' });
+    expect(miss('three_pointer')).toEqual({ type: 'three_pointer_miss', label: 'Missed 3PT' });
   });
   it('Soccer tracks assist, throw-in, corner, off-side, penalty', () => {
     const types = getSportConfig('soccer').statEvents.map((s) => s.type);

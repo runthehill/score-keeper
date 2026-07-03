@@ -142,3 +142,14 @@ describe('eventLabel', () => {
     expect(eventLabel(soccer, 'substitution')).toBe('Substitution');
   });
 });
+
+describe('eventLabel', () => {
+  const basketball = getSportConfig('basketball');
+  it('labels a missed field goal from its miss descriptor', () => {
+    expect(eventLabel(basketball, 'field_goal_miss')).toBe('Missed 2PT');
+  });
+  it('labels new stat types', () => {
+    expect(eventLabel(basketball, 'off_rebound')).toBe('Oreb');
+    expect(eventLabel(basketball, 'turnover')).toBe('TO');
+  });
+});

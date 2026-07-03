@@ -55,6 +55,7 @@ export interface ScoringEventConfig {
   points: number;
   icon: string;
   color?: string;
+  miss?: { type: string; label: string };
 }
 
 export interface StatEventConfig {
