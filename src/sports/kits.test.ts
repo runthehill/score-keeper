@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { KITS, SWATCHES, DEFAULT_HOME_KIT, DEFAULT_AWAY_KIT, DEFAULT_HOME_KITS, squadKit } from './kits';
+import { SPORTS } from './configs';
 import type { DefaultSquad } from '../types';
 
 describe('kits', () => {
@@ -22,11 +23,11 @@ describe('kits', () => {
 
 describe('per-sport home kits', () => {
   it('has a hex kit for every sport', () => {
-    const sports = ['rugby_union', 'soccer', 'gaelic_football', 'basketball'] as const;
-    for (const s of sports) {
-      const kit = DEFAULT_HOME_KITS[s];
-      expect(kit.primary).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(kit.secondary).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    // Derived from SPORTS so new sports are covered automatically (no stale hard-coded list).
+    for (const { id } of SPORTS) {
+      const kit = DEFAULT_HOME_KITS[id];
+      expect(kit.primary, id).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(kit.secondary, id).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });
 });
