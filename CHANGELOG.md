@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.27] - 2026-07-03
+
+### Added
+- Two new sports: **Hurling** (Point/Goal/Wide scoring, a 65, and yellow/black/red cards) and **Camogie** (same scoring, a 45, yellow/red cards). Both use the Gaelic goals–points scoreline.
+
 ## [1.1.26] - 2026-07-03
 
 ### Added

@@ -34,6 +34,8 @@ export const DEFAULT_HOME_KITS: Record<Sport, { primary: string; secondary: stri
   soccer: { primary: '#1E8E4E', secondary: '#FFFFFF' },
   gaelic_football: { primary: '#E03131', secondary: '#FFFFFF' },
   basketball: { primary: '#F25F1F', secondary: '#15171C' },
+  hurling: { primary: '#1E63D6', secondary: '#FFFFFF' },
+  camogie: { primary: '#5B2A86', secondary: '#F4C430' },
 };
 
 // The kit to use for a saved squad: its own colours when set, else the sport's club default.
