@@ -84,7 +84,7 @@ export default function GameSummary() {
     try {
       const outcome = await exportShareCard(
         boxRef.current,
-        `${game.home_team}-vs-${game.away_team}-boxscore`.replace(/\s+/g, '-'),
+        shareFilename(game.home_team, game.away_team).replace(/\.png$/, '-boxscore.png'),
         { title: `${game.home_team} v ${game.away_team} — box score`, text: `${game.home_team} ${game.home_score} – ${game.away_score} ${game.away_team}` }
       );
       setBoxShareState(outcome === 'shared' ? 'Shared' : outcome === 'downloaded' ? 'Image saved' : outcome === 'cancelled' ? '' : "Couldn't create image");
