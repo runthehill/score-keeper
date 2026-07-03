@@ -239,7 +239,9 @@ export default function LiveGame() {
   const pendingAction = pendingScore || pendingStatTeam || pendingCard;
   const pendingTeam = pendingScore?.team ?? pendingStatTeam?.team ?? pendingCard?.team;
   const pendingTitle = pendingScore
-    ? `${pendingScore.points > 0 ? 'Who scored' : 'Who hit'} the ${pendingScore.eventType.replace(/_/g, ' ')}?`
+    ? (pendingScore.eventType.endsWith('_miss')
+        ? 'Who missed?'
+        : `${pendingScore.points > 0 ? 'Who scored' : 'Who hit'} the ${pendingScore.eventType.replace(/_/g, ' ')}?`)
     : pendingCard
       ? `Who received the card?`
       : 'Which player?';
@@ -330,6 +332,7 @@ export default function LiveGame() {
         isSplit={sport.scoreDisplay === 'split'}
         gameEvents={events}
         onScore={(type, pts) => handleScore('home', type, pts)}
+        onMiss={(missType) => handleScore('home', missType, 0)}
       />
 
       {/* Away scoring */}
@@ -343,6 +346,7 @@ export default function LiveGame() {
         isSplit={sport.scoreDisplay === 'split'}
         gameEvents={events}
         onScore={(type, pts) => handleScore('away', type, pts)}
+        onMiss={(missType) => handleScore('away', missType, 0)}
       />
 
       {/* Actions */}
