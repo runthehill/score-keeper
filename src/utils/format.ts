@@ -38,11 +38,14 @@ export function runningTally(
 }
 
 export function eventLabel(sport: SportConfig, type: string): string {
-  const match =
-    sport.scoringEvents.find((e) => e.type === type) ??
-    sport.statEvents.find((e) => e.type === type) ??
-    sport.cardEvents.find((e) => e.type === type);
-  if (match) return match.label;
+  const scoring = sport.scoringEvents.find((e) => e.type === type);
+  if (scoring) return scoring.label;
+  const miss = sport.scoringEvents.find((e) => e.miss?.type === type)?.miss;
+  if (miss) return miss.label;
+  const stat = sport.statEvents.find((e) => e.type === type);
+  if (stat) return stat.label;
+  const card = sport.cardEvents.find((e) => e.type === type);
+  if (card) return card.label;
   const words = type.replace(/_/g, ' ');
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
