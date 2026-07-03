@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.26] - 2026-07-03
+
+### Added
+- Basketball: record missed shots — each FT/2PT/3PT button now splits into a "made" area and a "✗ miss" strip.
+- Basketball: split Rebound into Offensive (Oreb) and Defensive (Dreb), and added a Turnover (TO) button.
+- Basketball: an end-of-game box score (per-player made-attempts, rebounds, assists, steals, turnovers, fouls) that you can share as an image.
+
+### Fixed
+- Gaelic Football: the 45 button now reads "45" (a 45-metre kick), not "45'".
+
 ## [1.1.25] - 2026-07-02
 
 ### Added
