@@ -61,7 +61,7 @@ export const SPORTS: SportConfig[] = [
     ],
     statEvents: [
       { type: 'penalty', label: 'Penalty', icon: '🎯' },
-      { type: '45', label: "45'", icon: '🦵' },
+      { type: '45', label: '45', icon: '🦵' },
     ],
     cardEvents: [
       { type: 'card_yellow', label: 'Yellow Card', color: '#facc15' },
@@ -82,15 +82,17 @@ export const SPORTS: SportConfig[] = [
     extraPeriods: [{ type: 'overtime', label: 'Overtime' }],
     scoreDisplay: 'single',
     scoringEvents: [
-      { type: 'free_throw', label: 'FT', points: 1, icon: '🏀' },
-      { type: 'field_goal', label: '2PT', points: 2, icon: '🏀' },
-      { type: 'three_pointer', label: '3PT', points: 3, icon: '🎯' },
+      { type: 'free_throw', label: 'FT', points: 1, icon: '🏀', miss: { type: 'free_throw_miss', label: 'Missed FT' } },
+      { type: 'field_goal', label: '2PT', points: 2, icon: '🏀', miss: { type: 'field_goal_miss', label: 'Missed 2PT' } },
+      { type: 'three_pointer', label: '3PT', points: 3, icon: '🎯', miss: { type: 'three_pointer_miss', label: 'Missed 3PT' } },
     ],
     statEvents: [
       { type: 'assist', label: 'Assist', icon: '👟' },
-      { type: 'rebound', label: 'Rebound', icon: '📊' },
+      { type: 'off_rebound', label: 'Oreb', icon: '📈' },
+      { type: 'def_rebound', label: 'Dreb', icon: '🛡️' },
       { type: 'steal', label: 'Steal', icon: '🤚' },
       { type: 'foul', label: 'Foul', icon: '⚠️' },
+      { type: 'turnover', label: 'TO', icon: '🔄' },
     ],
     cardEvents: [],
   },
