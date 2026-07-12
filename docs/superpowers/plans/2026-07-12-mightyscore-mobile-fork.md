@@ -37,30 +37,38 @@ new `runthehill/mightyscore` repo.
 6. **Milestone: submit the free app for review on both stores.** Everything
    after ships as updates.
 
-## Phase 2 — Backend & accounts (Supabase)
+## Phase 2 — Backend & accounts (Render)
 
-1. Supabase project; port the SQLite schema to Postgres
-   (`games`, `events`, `players`, …) with `user_id` ownership columns and RLS
-   (owner-write, public-read only for shared games).
-2. Auth: Sign in with Apple, Google, email magic link
-   (`@supabase/supabase-js`). Sign-in UI appears only from Pro feature
-   touchpoints; a Settings "Account" row shows state.
-3. In-app **account deletion** (Edge Function: delete auth user + owned rows).
-4. TDD the sync layer: an outbox that upserts local event rows (UUID PKs →
-   idempotent) whenever online; no behaviour change for signed-out users.
+1. Add a `server/` workspace to the repo: **Fastify** (TypeScript) API,
+   deployed as an always-on Render web service; **Render Postgres**. Port the
+   SQLite schema (`games`, `events`, `players`, …) with `user_id` ownership
+   columns, managed with **Drizzle** migrations (better-auth ships a Drizzle
+   adapter, so one schema toolchain covers both).
+2. Auth: **better-auth** in the API — Sign in with Apple, Google, and email
+   magic link delivered via **Postmark** (existing account). Sign-in UI in the
+   app appears only from Pro feature touchpoints; a Settings "Account" row
+   shows state.
+3. In-app **account deletion** (API endpoint: delete auth user + owned rows).
+4. TDD the sync layer: an outbox that POSTs local event rows to the API
+   (UUID PKs → idempotent upserts) whenever online; no behaviour change for
+   signed-out users. Authorization lives in the request handlers — vitest
+   the "publishing requires Pro entitlement" path directly.
 
 ## Phase 3 — Live score sharing
 
-1. "Share live" on `LiveGame` → creates the game server-side, mints a short
-   slug, starts the event outbox for that game; native share sheet with
+1. "Share live" on `LiveGame` → API creates the game server-side, mints a
+   short slug, starts the event outbox for that game; native share sheet with
    `https://mightyscore.app/g/<slug>`.
 2. Viewer: a second Vite entry in the same repo — read-only page that loads
-   the game + events, subscribes to the Realtime channel, and reuses
-   `format.ts`/scoreboard rendering. Deploy to `mightyscore.app` (static host
-   + Supabase).
+   the game + events from the API, subscribes to its WS/SSE stream, and reuses
+   `format.ts`/scoreboard rendering. Deploy as a Render static site on
+   **mightyscore.app** (registered); fan-out is in-process pub/sub on the
+   single API instance, with Render Key Value (Redis) as the bridge if it
+   ever runs multi-instance.
 3. End the stream at final whistle; the page flips to "Full-time".
 4. QA: airplane-mode mid-game → events queue and flush; two viewers see the
-   same tally as the scorer's device.
+   same tally as the scorer's device; a viewer surviving an API deploy
+   (reconnect + resync from the event log).
 
 ## Phase 4 — Post-game reports
 
@@ -75,8 +83,8 @@ new `runthehill/mightyscore` repo.
 
 1. RevenueCat project; monthly + annual subscription products in App Store
    Connect / Play Console; `@revenuecat/purchases-capacitor` in the app.
-2. RevenueCat webhook → Supabase `entitlements` table; RLS for publishing
-   checks it server-side.
+2. RevenueCat webhook → Fastify API endpoint writing an `entitlements` table;
+   the publish/report handlers check it server-side.
 3. Paywall sheet at the two touchpoints (share live / share report):
    sign-in → trial or subscribe → proceed. Restore-purchases button.
 4. Sandbox-test purchases on both platforms; then submit the update with IAP

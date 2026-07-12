@@ -71,45 +71,61 @@ Name, icon set (regenerate from a new `icon.svg`), splash screens, app IDs
 
 ## Backend — decision
 
-**Recommendation: Supabase** (Postgres + Auth + Realtime + Edge Functions +
-Storage). Firebase is the credible alternative; Supabase wins because the data
-model is already relational/event-sourced (it's SQLite today — the schema ports
-almost 1:1 to Postgres) and Realtime channels map directly onto "broadcast
-score events for game X". Free tier covers development and early usage.
+**Render**, consolidating onto the platform already operating other projects
+(Supabase was considered — it trades a managed auth/realtime layer for a second
+vendor surface; not worth it here). The backend is **one deployable service**:
+
+- **Fastify** (TypeScript) API service on an always-on paid instance (live
+  sharing can't tolerate spin-down cold starts).
+- **Render Postgres** — the SQLite schema ports nearly 1:1 (`games`, `events`,
+  `players`, …) with `user_id` ownership columns.
+- **better-auth** inside the API for accounts (Apple, Google, magic links);
+  **Postmark** (already in use) delivers magic-link email.
+- Realtime fan-out via **WebSocket/SSE endpoints on the same Fastify service**.
+  Event volume is tiny (a score event every minute or two, single writer per
+  game), so in-process pub/sub on one instance is fine; **Render Key Value
+  (Redis)** bridges instances if it ever scales horizontally.
+- No row-level security model: the client never talks to Postgres. All
+  authorization ("does this user hold the Pro entitlement?") is ordinary,
+  vitest-testable code in the request handlers.
+- The public viewer is a **Render static site** on **mightyscore.app**
+  (domain registered). No object storage needed: report pages render from
+  event data and share images are generated client-side.
 
 ### Accounts
 
 - **Scoring never requires an account.** Sign-in is asked for only when the
   user first touches a Pro feature (App Store guideline 5.1.1 also demands
   this).
-- Auth methods: **Sign in with Apple** (mandatory on iOS once any third-party
-  login is offered), **Google**, and email magic-link.
-- **In-app account deletion** is required by Apple — build it with accounts,
-  not as an afterthought.
+- Auth methods via better-auth: **Sign in with Apple** (mandatory on iOS once
+  any third-party login is offered), **Google**, and email magic-link through
+  Postmark.
+- **In-app account deletion** is required by Apple — an API endpoint that
+  removes the auth user and owned rows, built with accounts, not as an
+  afterthought.
 
 ### Live score sharing (Pro)
 
 The event-sourced architecture is the whole design:
 
-- Publisher (the scorer) pushes each appended event row to Supabase as it
+- Publisher (the scorer) pushes each appended event row to the API as it
   happens; offline-tolerant — events queue locally (they're already in the
   local `events` table with UUIDs and timestamps) and sync when connectivity
   returns. UUID PKs make sync idempotent upserts; no conflict resolution
   needed because only one device writes a given game.
 - A shared game gets a short public slug → `https://mightyscore.app/g/<slug>`.
 - The viewer is a **read-only web page** (no app install needed by grandparents
-  on the far side of the world) that subscribes to the game's Realtime channel
+  on the far side of the world) that subscribes to the game's WS/SSE stream
   and derives the score exactly the way the app does — the existing `format.ts`
   / scoreboard code is reused in a small public web build from the same repo.
 - Viewers are anonymous; publishing requires account + Pro entitlement,
-  enforced by Postgres row-level security.
+  enforced in the API.
 
 ### Post-game reports (Pro)
 
-- On "share report", the app uploads the final event log + metadata; an Edge
-  Function (or the same web viewer in "final" mode) renders a hosted report
-  page at the same slug — scoreline, timeline, box score, per-player stats,
-  kit colours.
+- On "share report", the app ensures the full event log + metadata is synced;
+  the same viewer page in "final" mode renders the hosted report at the same
+  slug — scoreline, timeline, box score, per-player stats, kit colours.
 - The existing share-card image remains free; the hosted, full report page is
   the Pro artifact.
 
@@ -121,8 +137,9 @@ The event-sourced architecture is the whole design:
   free) so the value is felt before the paywall.
 - **Plumbing: RevenueCat** (`@revenuecat/purchases-capacitor`) rather than raw
   StoreKit 2 + Play Billing — one API for both stores, server-side receipt
-  validation, and a webhook that stamps the entitlement into Supabase so RLS
-  can check "is Pro" server-side. Free below $2.5k MTR.
+  validation, and a webhook that hits the Fastify API and stamps an
+  `entitlements` row so publishing rights are checked server-side. Free below
+  $2.5k MTR.
 - Rule to respect: on-device digital features must be purchasable only via IAP
   on iOS — no external checkout links.
 
