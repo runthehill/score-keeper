@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [1.1.28] - 2026-07-13
 
 ### Fixed
-- **Shared score image no longer crops its footer.** The exporter now captures the card with vertical headroom (filled with the card background), so html-to-image's slightly-taller rasterisation of the card can't clip the "Score Keeper" footer row.
+- **Shared score image renders as a clean poster.** The share card is now a fixed-width poster (`max-width: 440px`) that no longer stretches edge-to-edge and squeezes the two teams into the far corners on desktop. Its text is kept on single lines (`white-space: nowrap`), which stops html-to-image — it copies each element's measured width onto the export clone — from wrapping the scores ("1-02" → "1-/02"), status, and footer, and the exporter captures with vertical headroom so the footer is never clipped.
 - **Sharing the current score during a game named the wrong leader.** The live share card now names and highlights the team that is actually ahead ("Redbacks lead by 4"), or shows "Scores level" when tied — previously it always labelled the away team as leading. The full-time result card is unchanged.
 
 ### Changed

@@ -44,7 +44,7 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative', borderRadius: 22, overflow: 'hidden', background: '#0A0C10', boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '18px 18px 16px' }}>
+    <div ref={ref} style={{ position: 'relative', width: '100%', maxWidth: 440, marginInline: 'auto', borderRadius: 22, overflow: 'hidden', background: '#0A0C10', boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '18px 18px 16px', whiteSpace: 'nowrap' }}>
       <div style={{ position: 'absolute', top: -60, left: -40, width: 200, height: 200, borderRadius: 999, background: rgba(game.home_primary, 0.4), filter: 'blur(60px)' }} />
       <div style={{ position: 'absolute', top: -60, right: -40, width: 200, height: 200, borderRadius: 999, background: rgba(game.away_primary, 0.4), filter: 'blur(60px)' }} />
       <div style={{ position: 'relative' }}>
