@@ -61,12 +61,13 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
           {side('away')}
         </div>
         <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '16px 0 12px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <span style={{ display: 'flex', gap: 2.5 }}>{LOGO_DOTS.map((c) => <span key={c} style={{ width: 5, height: 5, borderRadius: 999, background: c }} />)}</span>
             <span className="font-sans" style={{ fontWeight: 700, fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>Score Keeper</span>
           </span>
-          <span className="font-sans" style={{ fontWeight: 600, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>
+          {/* Shrinkable so a long team name in the caption ellipsises instead of overflowing the nowrap card. */}
+          <span className="font-sans" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right', fontWeight: 600, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>
             {model.resultLabel}
           </span>
         </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ShareCard from './ShareCard';
 import { getSportConfig } from '../sports/configs';
 import type { Game } from '../types';
@@ -21,5 +21,20 @@ describe('ShareCard export safety', () => {
     );
     const root = container.firstChild as HTMLElement;
     expect(root).toHaveStyle({ whiteSpace: 'nowrap', maxWidth: '440px' });
+  });
+
+  // With the card-wide nowrap, a long team name in the caption must ellipsise
+  // rather than overflow and get clipped by the card's overflow:hidden.
+  it('lets the footer caption shrink to an ellipsis for long labels', () => {
+    render(
+      <ShareCard
+        game={{ ...game, home_team: 'Ballinascreen Wolfe Tones Hurling Club' }}
+        events={[]}
+        sport={getSportConfig('hurling')}
+        variant="final"
+      />
+    );
+    const caption = screen.getByText(/by 4$/);
+    expect(caption).toHaveStyle({ overflow: 'hidden', textOverflow: 'ellipsis', minWidth: '0px' });
   });
 });
