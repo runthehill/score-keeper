@@ -30,6 +30,13 @@ describe('per-sport home kits', () => {
       expect(kit.secondary, id).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });
+
+  // Home and away should never default to the same colour (Hurling regressed to royal blue on both).
+  it('gives every sport a home kit distinct from the away default', () => {
+    for (const { id } of SPORTS) {
+      expect(DEFAULT_HOME_KITS[id].primary, id).not.toBe(DEFAULT_AWAY_KIT.primary);
+    }
+  });
 });
 
 describe('squadKit', () => {

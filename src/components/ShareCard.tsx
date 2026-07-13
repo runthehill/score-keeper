@@ -22,7 +22,6 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
 ) {
   const model = buildShareModel(game, events, sport, { variant, periodLabel });
   const isSplit = sport.scoreDisplay === 'split';
-  const margin = Math.abs(game.home_score - game.away_score);
 
   const side = (which: 'home' | 'away') => {
     const isHome = which === 'home';
@@ -30,7 +29,8 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
     const primary = isHome ? game.home_primary : game.away_primary;
     const secondary = isHome ? game.home_secondary : game.away_secondary;
     const accent = teamAccent({ primary, secondary }, true);
-    const highlight = team.isWinner || model.isDraw;
+    // Accent the leader's score (live or final); when scores are level, accent both.
+    const highlight = model.leader === which || model.leader === null;
     const total = isHome ? game.home_score : game.away_score;
     return (
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isHome ? 'flex-start' : 'flex-end' }}>
@@ -44,7 +44,7 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative', borderRadius: 22, overflow: 'hidden', background: '#0A0C10', boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '18px 18px 16px' }}>
+    <div ref={ref} style={{ position: 'relative', width: '100%', maxWidth: 440, marginInline: 'auto', borderRadius: 22, overflow: 'hidden', background: '#0A0C10', boxShadow: '0 18px 50px rgba(0,0,0,0.5)', padding: '18px 18px 16px', whiteSpace: 'nowrap' }}>
       <div style={{ position: 'absolute', top: -60, left: -40, width: 200, height: 200, borderRadius: 999, background: rgba(game.home_primary, 0.4), filter: 'blur(60px)' }} />
       <div style={{ position: 'absolute', top: -60, right: -40, width: 200, height: 200, borderRadius: 999, background: rgba(game.away_primary, 0.4), filter: 'blur(60px)' }} />
       <div style={{ position: 'relative' }}>
@@ -61,13 +61,14 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
           {side('away')}
         </div>
         <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '16px 0 12px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <span style={{ display: 'flex', gap: 2.5 }}>{LOGO_DOTS.map((c) => <span key={c} style={{ width: 5, height: 5, borderRadius: 999, background: c }} />)}</span>
             <span className="font-sans" style={{ fontWeight: 700, fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>Score Keeper</span>
           </span>
-          <span className="font-sans" style={{ fontWeight: 600, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>
-            {model.isDraw ? 'Full-time draw' : `${model.home.isWinner ? model.home.name : model.away.name} by ${margin}`}
+          {/* Shrinkable so a long team name in the caption ellipsises instead of overflowing the nowrap card. */}
+          <span className="font-sans" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right', fontWeight: 600, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>
+            {model.resultLabel}
           </span>
         </div>
       </div>

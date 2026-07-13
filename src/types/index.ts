@@ -115,7 +115,6 @@ export interface SportConfig {
   id: Sport;
   name: string;
   icon: string;
-  defaultTeamName: string;
   periods: PeriodConfig;
   periodOptions?: PeriodConfig[];
   extraPeriods: ExtraPeriodConfig[];
