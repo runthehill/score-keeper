@@ -18,7 +18,9 @@ export interface ShareModel {
   dateLabel: string;
   home: ShareTeam;
   away: ShareTeam;
+  leader: Team | null; // who is ahead — live or final; null when scores are level
   isDraw: boolean;
+  resultLabel: string; // bottom-right caption ("Coolera by 3", "Coolera lead by 3", "Scores level"…)
   appName: string;
   appUrl: string;
 }
@@ -48,9 +50,18 @@ export function buildShareModel(
   opts: { variant: ShareVariant; periodLabel?: string }
 ): ShareModel {
   const isLive = opts.variant === 'live';
-  const isDraw = !isLive && game.home_score === game.away_score;
-  const homeWins = !isLive && game.home_score > game.away_score;
-  const awayWins = !isLive && game.away_score > game.home_score;
+  const leader: Team | null =
+    game.home_score > game.away_score ? 'home' : game.away_score > game.home_score ? 'away' : null;
+  const isDraw = !isLive && leader === null;
+  const margin = Math.abs(game.home_score - game.away_score);
+
+  const leaderName = leader === 'home' ? game.home_team : leader === 'away' ? game.away_team : '';
+  const resultLabel =
+    leader === null
+      ? isLive
+        ? 'Scores level'
+        : 'Full-time draw'
+      : `${leaderName} ${isLive ? 'lead by' : 'by'} ${margin}`;
 
   return {
     sport: sport.name,
@@ -58,9 +69,12 @@ export function buildShareModel(
     isLive,
     statusLabel: isLive ? (opts.periodLabel ?? '') : isDraw ? 'DRAW' : 'FULL TIME',
     dateLabel: formatDate(game.started_at),
-    home: { name: game.home_team, score: scoreFor(game, events, sport, 'home'), side: 'home', isWinner: homeWins },
-    away: { name: game.away_team, score: scoreFor(game, events, sport, 'away'), side: 'away', isWinner: awayWins },
+    // isWinner is the settled full-time winner (drives the "· Win" badge); leader covers the live case.
+    home: { name: game.home_team, score: scoreFor(game, events, sport, 'home'), side: 'home', isWinner: !isLive && leader === 'home' },
+    away: { name: game.away_team, score: scoreFor(game, events, sport, 'away'), side: 'away', isWinner: !isLive && leader === 'away' },
+    leader,
     isDraw,
+    resultLabel,
     appName: "Jonathan's Score Keeper",
     appUrl: 'runthehill.github.io/score-keeper',
   };

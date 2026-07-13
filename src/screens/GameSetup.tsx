@@ -109,8 +109,8 @@ export default function GameSetup() {
   const previewGame: Game = {
     id: 'preview',
     sport: sport.id,
-    home_team: homeTeam.trim() || sport.defaultTeamName,
-    away_team: awayTeam.trim() || 'Opponent',
+    home_team: homeTeam.trim() || 'Home',
+    away_team: awayTeam.trim() || 'Away',
     home_score: 0,
     away_score: 0,
     status: 'in_progress',
@@ -144,7 +144,7 @@ export default function GameSetup() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={which === 'home' ? sport.defaultTeamName : 'Opponent'}
+              placeholder={which === 'home' ? 'Home team name' : 'Away team name'}
               className="min-w-0 flex-1 bg-transparent text-txt font-bold text-[15.5px] placeholder-txt-3 focus:outline-none -tracking-[0.01em]"
             />
             {savedTeams.length > 0 && (
@@ -280,7 +280,7 @@ export default function GameSetup() {
       {/* Kit picker */}
       {picker && (
         <ColorKitPicker
-          team={picker === 'home' ? (homeTeam.trim() || sport.defaultTeamName) : (awayTeam.trim() || 'Opponent')}
+          team={picker === 'home' ? (homeTeam.trim() || 'Home') : (awayTeam.trim() || 'Away')}
           value={picker === 'home' ? homeKit : awayKit}
           onChange={(kit) => (picker === 'home' ? setHomeKit(kit) : setAwayKit(kit))}
           onClose={() => setPicker(null)}

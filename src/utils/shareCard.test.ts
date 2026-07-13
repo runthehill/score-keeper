@@ -59,6 +59,43 @@ describe('buildShareModel', () => {
     expect(m.away.isWinner).toBe(false);
     expect(m.isDraw).toBe(false);
   });
+
+  it('final win caption names the actual winner and margin', () => {
+    const g = game({ sport: 'soccer', home_score: 3, away_score: 1 });
+    const m = buildShareModel(g, [], getSportConfig('soccer'), { variant: 'final' });
+    expect(m.leader).toBe('home');
+    expect(m.resultLabel).toBe('Coolera by 2');
+  });
+
+  it('final draw caption reads "Full-time draw"', () => {
+    const g = game({ sport: 'soccer', home_score: 2, away_score: 2 });
+    const m = buildShareModel(g, [], getSportConfig('soccer'), { variant: 'final' });
+    expect(m.leader).toBeNull();
+    expect(m.resultLabel).toBe('Full-time draw');
+  });
+
+  // Bug: sharing the live score always named the away team as leading, regardless of who led.
+  it('names the home team as leader when home is ahead in a live game', () => {
+    const g = game({ home_score: 8, away_score: 7 });
+    const m = buildShareModel(g, [], getSportConfig('gaelic_football'), { variant: 'live', periodLabel: 'Half 2' });
+    expect(m.leader).toBe('home');
+    expect(m.resultLabel).toBe('Coolera lead by 1');
+  });
+
+  it('names the away team as leader when away is ahead in a live game', () => {
+    const g = game({ home_score: 5, away_score: 9 });
+    const m = buildShareModel(g, [], getSportConfig('gaelic_football'), { variant: 'live', periodLabel: 'Half 1' });
+    expect(m.leader).toBe('away');
+    expect(m.resultLabel).toBe('Tourlestrane lead by 4');
+  });
+
+  it('reports level scores during a live game (not a draw)', () => {
+    const g = game({ home_score: 6, away_score: 6 });
+    const m = buildShareModel(g, [], getSportConfig('gaelic_football'), { variant: 'live', periodLabel: 'Half 1' });
+    expect(m.leader).toBeNull();
+    expect(m.isDraw).toBe(false);
+    expect(m.resultLabel).toBe('Scores level');
+  });
 });
 
 describe('shareFilename', () => {

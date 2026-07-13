@@ -22,7 +22,6 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
 ) {
   const model = buildShareModel(game, events, sport, { variant, periodLabel });
   const isSplit = sport.scoreDisplay === 'split';
-  const margin = Math.abs(game.home_score - game.away_score);
 
   const side = (which: 'home' | 'away') => {
     const isHome = which === 'home';
@@ -30,7 +29,8 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
     const primary = isHome ? game.home_primary : game.away_primary;
     const secondary = isHome ? game.home_secondary : game.away_secondary;
     const accent = teamAccent({ primary, secondary }, true);
-    const highlight = team.isWinner || model.isDraw;
+    // Accent the leader's score (live or final); when scores are level, accent both.
+    const highlight = model.leader === which || model.leader === null;
     const total = isHome ? game.home_score : game.away_score;
     return (
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isHome ? 'flex-start' : 'flex-end' }}>
@@ -67,7 +67,7 @@ const ShareCard = forwardRef<HTMLDivElement, Props>(function ShareCard(
             <span className="font-sans" style={{ fontWeight: 700, fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>Score Keeper</span>
           </span>
           <span className="font-sans" style={{ fontWeight: 600, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' }}>
-            {model.isDraw ? 'Full-time draw' : `${model.home.isWinner ? model.home.name : model.away.name} by ${margin}`}
+            {model.resultLabel}
           </span>
         </div>
       </div>

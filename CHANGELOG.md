@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.28] - 2026-07-13
+
+### Fixed
+- **Shared score image no longer crops its footer.** The exporter now captures the card with vertical headroom (filled with the card background), so html-to-image's slightly-taller rasterisation of the card can't clip the "Score Keeper" footer row.
+- **Sharing the current score during a game named the wrong leader.** The live share card now names and highlights the team that is actually ahead ("Redbacks lead by 4"), or shows "Scores level" when tied — previously it always labelled the away team as leading. The full-time result card is unchanged.
+
+### Changed
+- **Hurling** now has distinct default kit colours for home (maroon/amber) and away (royal blue) — they were previously identical.
+- Team-name fields on the New Game screen use generic **"Home team name" / "Away team name"** placeholders instead of pre-filling club names (which read as if a name had already been entered).
+
 ## [1.1.27] - 2026-07-03
 
 ### Added
