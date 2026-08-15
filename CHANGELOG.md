@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.29] - 2026-08-15
+
+### Changed
+- **Dependency maintenance.** Cleared all six open Dependabot updates in one pass: `react-router-dom` 7.16 → 7.18.2, `eslint` 9 → 10 (with `@eslint/js` 10), `postcss` 8.5.15 → 8.5.26, plus the transitive security fixes for `undici` (7.29.0), `fast-uri` (3.1.5) and `brace-expansion`. `js-yaml` dropped out of the tree entirely with the ESLint 10 upgrade. `npm audit` now reports zero vulnerabilities; lint, the full test suite and the production build all pass.
+
 ## [1.1.28] - 2026-07-13
 
 ### Fixed
